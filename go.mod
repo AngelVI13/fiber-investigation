@@ -1,4 +1,4 @@
-module example
+module github.com/AngelVI13/fiber-investigation
 
 go 1.18
 
