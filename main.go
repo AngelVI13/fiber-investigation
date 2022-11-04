@@ -13,6 +13,10 @@ import (
 //go:embed views/*
 var viewsfs embed.FS
 
+var UrlMap = map[string]string{
+	"BusinessKwdsUrl": "/business",
+}
+
 func main() {
 	engine := html.NewFileSystem(http.FS(viewsfs), ".html")
 
@@ -30,11 +34,11 @@ func main() {
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		// Render index - start with views directory
-		return c.Render("views/index", fiber.Map{
+		return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
 			"Title":     "Hello, World!",
 			"Items":     items,
 			"MoreItems": moreItems,
-		}, "views/layouts/main")
+		}), "views/layouts/main")
 	})
 
 	app.Get("/:name", indexNameHandler)
@@ -47,6 +51,14 @@ type RandomItem struct {
 	Quantity int
 }
 
+// UpdateMap update map `n` with values from map `m`
+func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
+	for k, v := range m {
+		n[k] = v
+	}
+	return n
+}
+
 func indexNameHandler(c *fiber.Ctx) error {
 	var items []string
 
@@ -56,9 +68,9 @@ func indexNameHandler(c *fiber.Ctx) error {
 	}
 
 	// Render index - start with views directory
-	return c.Render("views/index", fiber.Map{
+	return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title":     fmt.Sprintf("Hello, %s!", c.Params("name")),
 		"Items":     items,
 		"MoreItems": moreItems,
-	})
+	}))
 }
