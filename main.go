@@ -34,7 +34,7 @@ func main() {
 			"Title":     "Hello, World!",
 			"Items":     items,
 			"MoreItems": moreItems,
-		})
+		}, "views/layouts/main")
 	})
 
 	app.Get("/:name", indexNameHandler)

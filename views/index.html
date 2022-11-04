@@ -1,14 +1,15 @@
-{{template "views/partials/header" .}}
+{{template "views/partials/nav" .}}
+<div class="content" >
+    <h1>{{.Title}}</h1>
 
-<h1>{{.Title}}</h1>
+    {{range .Items}}
+    <div>{{ . }}</div>
+    {{else}}
+    <div><strong>no rows</strong></div>
+    {{end}}
 
-{{range .Items}}
-<div>{{ . }}</div>
-{{else}}
-<div><strong>no rows</strong></div>
-{{end}}
+    <br>
+    <div>{{.MoreItems.Name}} {{.MoreItems.Quantity}}</div>
 
-<br>
-<div>{{.MoreItems.Name}} {{.MoreItems.Quantity}}</div>
-
-{{template "views/partials/footer" .}}
+    {{template "views/partials/footer" .}}
+</div>
