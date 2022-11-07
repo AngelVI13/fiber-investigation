@@ -1,0 +1,25 @@
+<h2>{{.Title}}</h2>
+<label>Version:</label>
+<!--needs to be rewritten when history objects are made-->
+<br>
+<table id="data" class="table table-striped">
+    <caption>Keywords</caption>
+    <thead class="table-dark">
+    <tr>
+        <th>Created</th>
+        <th>Name</th>
+        <th>Arguments</th>
+        <th>Documentation</th>
+        <th>Implementation</th>
+    </tr>
+    </thead>
+    {{ range .Keywords}}
+    <tr>
+        <td>{{ .CreatedAt }}</td>
+        <td>{{ .Name }}</td>
+        <td>{{ .Args }}</td>
+        <td>{{ .Docs }}</td>
+        <td>{{ .Implementation }}</td>
+    </tr>
+    {{ end}}
+</table>

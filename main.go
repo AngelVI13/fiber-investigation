@@ -5,16 +5,46 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
+
+	"gorm.io/gorm"
+    "gorm.io/driver/sqlite"
 )
 
 //go:embed views/*
 var viewsfs embed.FS
 
 var UrlMap = map[string]string{
-	"BusinessKwdsUrl": "/business",
+	"IndexUrl": "/",
+	"BusinessKwdsUrl": "/business_keywords",
+	"TechnicalKwdsUrl": "/technical_keywords",
+	"AllKwdsUrl": "/all_keywords",
+}
+var keywords []Keyword
+
+
+// how to put files in folders and then to import here?
+type Keyword struct {
+    gorm.Model
+    ValidFrom       time.Time       `gorm:"autoCreateTime;not null"`
+    ValidTo         *time.Time
+    Name            string          `gorm:"not null,unique"`
+    Args            string          `gorm:"not null"`
+    Docs            string          `gorm:"not null"`
+    KwType          string          `gorm:"not null"`
+    Implementation  string
+}
+
+type User struct{
+    Username        string          `gorm:"index;unique"`
+    Email           string          `gorm:"index;unique"`
+    PassHash        string
+    Salt            string
+    // role used to be enum. is gorm supports enums?
+    Role            string          `gorm:"default:User"`
 }
 
 func main() {
@@ -25,30 +55,53 @@ func main() {
 		Views: engine,
 	})
 
-	items := []string{"Banana", "Cucumber", "Avocado"}
+    // init db
+    db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+    if err != nil {
+        panic("failed to connect database")
+    }
 
-	moreItems := RandomItem{
-		Name:     "Watch",
-		Quantity: 10,
-	}
+    // Migrate the schema
+    db.AutoMigrate(&Keyword{}, &User{})
 
-	app.Get("/", func(c *fiber.Ctx) error {
+    // routes
+	app.Get(UrlMap["IndexUrl"], func(c *fiber.Ctx) error {
 		// Render index - start with views directory
 		return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
-			"Title":     "Hello, World!",
-			"Items":     items,
-			"MoreItems": moreItems,
+			"Title":     "Keyword storage",
+		}), "views/layouts/main")
+	})
+
+	app.Get(UrlMap["BusinessKwdsUrl"], func(c *fiber.Ctx) error {
+		// Render index - start with views directory
+		db.Where("kw_type = ?", "business").Find(&keywords)
+		return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
+			"Title":     "Business Keywords",
+			"Keywords":  keywords,
+		}), "views/layouts/main")
+	})
+
+    app.Get(UrlMap["TechnicalKwdsUrl"], func(c *fiber.Ctx) error {
+		// Render index - start with views directory
+		db.Where("kw_type = ?", "technical").Find(&keywords)
+		return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
+			"Title":     "Technical Keywords",
+			"Keywords":  keywords,
+		}), "views/layouts/main")
+	})
+
+    app.Get(UrlMap["AllKwdsUrl"], func(c *fiber.Ctx) error {
+		// Render index - start with views directory
+		db.Find(&keywords)
+		return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
+			"Title":     "All Keywords",
+			"Keywords":  keywords,
 		}), "views/layouts/main")
 	})
 
 	app.Get("/:name", indexNameHandler)
 
 	log.Fatal(app.Listen(":3000"))
-}
-
-type RandomItem struct {
-	Name     string
-	Quantity int
 }
 
 // UpdateMap update map `n` with values from map `m`
@@ -60,17 +113,8 @@ func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
 }
 
 func indexNameHandler(c *fiber.Ctx) error {
-	var items []string
-
-	moreItems := RandomItem{
-		Name:     "Watch",
-		Quantity: 10,
-	}
-
 	// Render index - start with views directory
 	return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title":     fmt.Sprintf("Hello, %s!", c.Params("name")),
-		"Items":     items,
-		"MoreItems": moreItems,
-	}))
+		"Title":     fmt.Sprintf("Missing routes for: %s!", c.Params("name")),
+	}), "views/layouts/main")
 }
