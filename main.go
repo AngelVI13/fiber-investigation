@@ -5,47 +5,29 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
+	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
-
 	"gorm.io/gorm"
-    "gorm.io/driver/sqlite"
 )
 
 //go:embed views/*
 var viewsfs embed.FS
 
 var UrlMap = map[string]string{
-	"IndexUrl": "/",
-	"BusinessKwdsUrl": "/business_keywords",
+	"IndexUrl":         "/",
+	"BusinessKwdsUrl":  "/business_keywords",
 	"TechnicalKwdsUrl": "/technical_keywords",
-	"AllKwdsUrl": "/all_keywords",
+	"AllKwdsUrl":       "/all_keywords",
+	"CreateKwdUrl":     "/create",
+	"EditKwdUrl":       "/edit",
 }
-var keywords []Keyword
+var keywords []database.Keyword
 
+var db *gorm.DB
 
 // how to put files in folders and then to import here?
-type Keyword struct {
-    gorm.Model
-    ValidFrom       time.Time       `gorm:"autoCreateTime;not null"`
-    ValidTo         *time.Time
-    Name            string          `gorm:"not null,unique"`
-    Args            string          `gorm:"not null"`
-    Docs            string          `gorm:"not null"`
-    KwType          string          `gorm:"not null"`
-    Implementation  string
-}
-
-type User struct{
-    Username        string          `gorm:"index;unique"`
-    Email           string          `gorm:"index;unique"`
-    PassHash        string
-    Salt            string
-    // role used to be enum. is gorm supports enums?
-    Role            string          `gorm:"default:User"`
-}
 
 func main() {
 	engine := html.NewFileSystem(http.FS(viewsfs), ".html")
@@ -55,20 +37,13 @@ func main() {
 		Views: engine,
 	})
 
-    // init db
-    db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-    if err != nil {
-        panic("failed to connect database")
-    }
+	db = database.Create()
 
-    // Migrate the schema
-    db.AutoMigrate(&Keyword{}, &User{})
-
-    // routes
+	// routes
 	app.Get(UrlMap["IndexUrl"], func(c *fiber.Ctx) error {
 		// Render index - start with views directory
 		return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
-			"Title":     "Keyword storage",
+			"Title": "Keyword storage",
 		}), "views/layouts/main")
 	})
 
@@ -76,26 +51,30 @@ func main() {
 		// Render index - start with views directory
 		db.Where("kw_type = ?", "business").Find(&keywords)
 		return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
-			"Title":     "Business Keywords",
-			"Keywords":  keywords,
+			"Title":    "Business Keywords",
+			"Keywords": keywords,
 		}), "views/layouts/main")
 	})
 
-    app.Get(UrlMap["TechnicalKwdsUrl"], func(c *fiber.Ctx) error {
-		// Render index - start with views directory
+	app.Get(UrlMap["TechnicalKwdsUrl"], func(c *fiber.Ctx) error {
 		db.Where("kw_type = ?", "technical").Find(&keywords)
 		return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
-			"Title":     "Technical Keywords",
-			"Keywords":  keywords,
+			"Title":    "Technical Keywords",
+			"Keywords": keywords,
 		}), "views/layouts/main")
 	})
 
-    app.Get(UrlMap["AllKwdsUrl"], func(c *fiber.Ctx) error {
-		// Render index - start with views directory
+	app.Get(UrlMap["AllKwdsUrl"], func(c *fiber.Ctx) error {
 		db.Find(&keywords)
 		return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
-			"Title":     "All Keywords",
-			"Keywords":  keywords,
+			"Title":    "All Keywords",
+			"Keywords": keywords,
+		}), "views/layouts/main")
+	})
+
+	app.Get(UrlMap["CreateKwdUrl"], func(c *fiber.Ctx) error {
+		return c.Render("views/create", UpdateFiberMap(UrlMap, fiber.Map{
+			"Title": "Add New Keyword",
 		}), "views/layouts/main")
 	})
 
@@ -115,6 +94,6 @@ func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
 func indexNameHandler(c *fiber.Ctx) error {
 	// Render index - start with views directory
 	return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title":     fmt.Sprintf("Missing routes for: %s!", c.Params("name")),
+		"Title": fmt.Sprintf("Missing routes for: %s!", c.Params("name")),
 	}), "views/layouts/main")
 }
