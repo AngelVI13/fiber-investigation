@@ -1,5 +1,3 @@
-package main
-
 import (
 	"embed"
 	"fmt"
@@ -25,11 +23,9 @@ var UrlMap = map[string]string{
 }
 var keywords []database.Keyword
 
-var db *gorm.DB
-
 // how to put files in folders and then to import here?
 
-func main() {
+func main1() {
 	engine := html.NewFileSystem(http.FS(viewsfs), ".html")
 
 	// Pass the engine to the Views
@@ -37,7 +33,7 @@ func main() {
 		Views: engine,
 	})
 
-	db = database.Create()
+	db := database.Create()
 
 	// routes
 	app.Get(UrlMap["IndexUrl"], func(c *fiber.Ctx) error {

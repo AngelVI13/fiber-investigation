@@ -1,17 +1,16 @@
 package database
 
-import(
-    "gorm.io/gorm"
-    "gorm.io/driver/sqlite"
+import (
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
-func Create() *gorm.DB {
-    Db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-    if err != nil {
-        panic("Failed to init db")
-    }
-    // Migrate the schema
-    Db.AutoMigrate(&Keyword{}, &User{})
-    return Db
+func Create(path string) (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+	// Migrate the schema
+	db.AutoMigrate(&Keyword{}, &User{})
+	return db, nil
 }
-
