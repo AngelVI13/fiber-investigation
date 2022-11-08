@@ -22,35 +22,19 @@ func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
 	return n
 }
 
-type RouteHandler interface {
-	Handle(*fiber.Ctx) error
-}
-
-type Route struct {
-	Route    string
-	Filename string
-	Layouts  []string
-}
-
-type IndexRoute struct {
-	Route
+type Router struct {
 	db *gorm.DB
 }
 
-func NewIndexRoute(route, filename string, db *gorm.DB, layouts []string) *IndexRoute {
-	return &IndexRoute{
-		Route: Route{
-			Route:    route,
-			Filename: filename,
-			Layouts:  layouts,
-		},
+func NewRouter(db *gorm.DB) *Router {
+	return &Router{
 		db: db,
 	}
 }
 
-func (r *IndexRoute) Handle(c *fiber.Ctx) error {
+func (r *Router) HandleIndex(c *fiber.Ctx) error {
 	// Render index - start with views directory
-	return c.Render(r.Filename, UpdateFiberMap(UrlMap, fiber.Map{
+	return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title": "Keyword storage",
-	}), r.Layouts...)
+	}), "views/layouts/main")
 }

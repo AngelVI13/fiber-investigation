@@ -28,8 +28,8 @@ func main() {
 		Views: engine,
 	})
 
-	v := routes.NewIndexRoute("/", "views/index", db, []string{"views/layouts/main"})
-	app.Get("/", v.Handle)
+	router := routes.NewRouter(db)
+	app.Get("/", router.HandleIndex)
 
 	log.Fatal(app.Listen(":3000"))
 }
