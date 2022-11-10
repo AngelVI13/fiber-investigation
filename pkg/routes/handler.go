@@ -31,12 +31,14 @@ func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
 }
 
 type Router struct {
-	db *gorm.DB
+	db         *gorm.DB
+	mainLayout string
 }
 
 func NewRouter(db *gorm.DB) *Router {
 	return &Router{
-		db: db,
+		db:         db,
+		mainLayout: "views/layouts/main",
 	}
 }
 
@@ -44,7 +46,7 @@ func (r *Router) HandleIndex(c *fiber.Ctx) error {
 	// Render index - start with views directory
 	return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title": "Keyword storage",
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
@@ -53,7 +55,7 @@ func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
 		"Title":    "Business Keywords",
 		"Keywords": keywords,
 		"KwType":   "business",
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
@@ -62,7 +64,7 @@ func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
 		"Title":    "Technical Keywords",
 		"Keywords": keywords,
 		"KwType":   "technical",
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
@@ -71,20 +73,26 @@ func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
 		"Title":    "All Keywords",
 		"Keywords": keywords,
 		"KwType":   "all",
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleCreateKeywordGet(c *fiber.Ctx) error {
 	kw_type := c.Params("kw_type")
 	return c.Render("views/create", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 	kw_type := c.Params("kw_type")
 
-	err := database.InsertNewKeyword(r.db, c.FormValue("name"), c.FormValue("args"), c.FormValue("docs"), kw_type)
+	err := database.InsertNewKeyword(
+		r.db,
+		c.FormValue("name"),
+		c.FormValue("args"),
+		c.FormValue("docs"),
+		kw_type,
+	)
 	if err != nil {
 		// this should be printed as message in html
 		log.Fatalf("Failed to create new kw: %s", err)
@@ -92,7 +100,7 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 	// add message that kw was successfully added
 	return c.Render("views/create", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleEditKeywordGet(c *fiber.Ctx) error {
@@ -104,7 +112,11 @@ func (r *Router) HandleEditKeywordGet(c *fiber.Ctx) error {
 	keywordToEdit := r.db.First(&keyword, kwId)
 
 	if keywordToEdit.Error != nil {
-		log.Fatalf("Failed to get keyword to edit(ID: %d). Error: %s", kwId, keywordToEdit.Error)
+		log.Fatalf(
+			"Failed to get keyword to edit(ID: %d). Error: %s",
+			kwId,
+			keywordToEdit.Error,
+		)
 	}
 
 	return c.Render("views/edit", UpdateFiberMap(UrlMap, fiber.Map{
@@ -112,7 +124,7 @@ func (r *Router) HandleEditKeywordGet(c *fiber.Ctx) error {
 		"KwName": keyword.Name,
 		"Args":   keyword.Args,
 		"Docs":   keyword.Docs,
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
@@ -138,7 +150,7 @@ func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
 		"KwName": kwName,
 		"Args":   args,
 		"Docs":   docs,
-	}), "views/layouts/main")
+	}), r.mainLayout)
 }
 
 func (r *Router) HandleDeleteKeyword(c *fiber.Ctx) error {
