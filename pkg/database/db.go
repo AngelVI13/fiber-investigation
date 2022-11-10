@@ -11,6 +11,6 @@ func Create(path string) (*gorm.DB, error) {
 		return nil, err
 	}
 	// Migrate the schema
-	db.AutoMigrate(&Keyword{}, &User{})
+	db.AutoMigrate(&Keyword{}, &User{}, &History{})
 	return db, nil
 }
