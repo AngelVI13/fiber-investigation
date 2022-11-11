@@ -43,5 +43,7 @@ func main() {
 
 	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["DeleteKwdUrl"]), router.HandleDeleteKeyword)
 
+	app.Get(routes.UrlMap["ChangelogUrl"], router.HandleChangelog)
+
 	log.Fatal(app.Listen(":3000"))
 }

@@ -1,0 +1,18 @@
+<h2>{{.Title}}</h2>
+<table id="data" class="table table-striped">
+    <caption>Versions</caption>
+    <thead class="table-dark">
+        <tr>
+            <th>Version</th>
+            <th>Valid From</th>
+            <th>Change</th>
+        </tr>
+    </thead>
+    {{ range .History}}
+    <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .CreatedAt }}</td>
+        <td>{{ .Change }}</td>
+    </tr>
+    {{ end}}
+</table>
