@@ -20,8 +20,6 @@ var UrlMap = map[string]string{
 	"DeleteKwdUrl":     "/delete",
 }
 
-var keywords []database.Keyword
-
 // UpdateMap update map `n` with values from map `m`
 func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
 	for k, v := range m {
@@ -33,6 +31,7 @@ func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
 type Router struct {
 	db         *gorm.DB
 	mainLayout string
+	messages   []message
 }
 
 func NewRouter(db *gorm.DB) *Router {
@@ -45,41 +44,58 @@ func NewRouter(db *gorm.DB) *Router {
 func (r *Router) HandleIndex(c *fiber.Ctx) error {
 	// Render index - start with views directory
 	return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title": "Keyword storage",
+		"Title":    "Keyword storage",
+		"Messages": getMessages(),
 	}), r.mainLayout)
 }
 
 func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
-	r.db.Where("kw_type = ? AND valid_to IS NULL", "business").Find(&keywords)
+	var keywords []database.Keyword
+	result := r.db.Where("kw_type = ? AND valid_to IS NULL", "business").Find(&keywords)
+	if result.Error != nil {
+		addMessage("There is no business keywords to display", "primary")
+	}
 	return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title":    "Business Keywords",
 		"Keywords": keywords,
 		"KwType":   "business",
+		"Messages": getMessages(), // is there a way to hide this from here? cuz it's needed for all of routes
 	}), r.mainLayout)
 }
 
 func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
-	r.db.Where("kw_type = ? AND valid_to IS NULL", "technical").Find(&keywords)
+	var keywords []database.Keyword
+	result := r.db.Where("kw_type = ? AND valid_to IS NULL", "technical").Find(&keywords)
+	if result.Error != nil {
+		addMessage("There is no business keywords to display", "primary")
+	}
 	return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title":    "Technical Keywords",
 		"Keywords": keywords,
 		"KwType":   "technical",
+		"Messages": getMessages(),
 	}), r.mainLayout)
 }
 
 func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
-	r.db.Where("valid_to IS NULL").Find(&keywords)
+	var keywords []database.Keyword
+	result := r.db.Where("valid_to IS NULL").Find(&keywords)
+	if result.Error != nil{
+		addMessage("There is no keywords to display", "primary")
+	}
 	return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title":    "All Keywords",
 		"Keywords": keywords,
 		"KwType":   "all",
+		"Messages": getMessages(),
 	}), r.mainLayout)
 }
 
 func (r *Router) HandleCreateKeywordGet(c *fiber.Ctx) error {
 	kw_type := c.Params("kw_type")
 	return c.Render("views/create", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
+		"Title":    fmt.Sprintf("Add New %s Keyword", kw_type),
+		"Messages": getMessages(),
 	}), r.mainLayout)
 }
 
@@ -99,7 +115,8 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 	}
 	// add message that kw was successfully added
 	return c.Render("views/create", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
+		"Title":    fmt.Sprintf("Add New %s Keyword", kw_type),
+		"Messages": getMessages(),
 	}), r.mainLayout)
 }
 
@@ -109,21 +126,19 @@ func (r *Router) HandleEditKeywordGet(c *fiber.Ctx) error {
 		log.Fatalf("Failed to convert Keyword id to number: %s", err)
 	}
 	var keyword database.Keyword
-	keywordToEdit := r.db.First(&keyword, kwId)
+	result := r.db.First(&keyword, kwId)
 
-	if keywordToEdit.Error != nil {
-		log.Fatalf(
-			"Failed to get keyword to edit(ID: %d). Error: %s",
-			kwId,
-			keywordToEdit.Error,
-		)
+	if result.Error != nil {
+		addMessage(fmt.Sprintf("Failed to get Keyword (ID: %d) to edit!", kwId), "danger")
+		return r.HandleIndex(c)
 	}
 
 	return c.Render("views/edit", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title":  fmt.Sprintf("Edit %s Keyword", keyword.Name),
-		"KwName": keyword.Name,
-		"Args":   keyword.Args,
-		"Docs":   keyword.Docs,
+		"Title":    fmt.Sprintf("Edit %s Keyword", keyword.Name),
+		"KwName":   keyword.Name,
+		"Args":     keyword.Args,
+		"Docs":     keyword.Docs,
+		"Messages": getMessages(),
 	}), r.mainLayout)
 }
 
@@ -140,10 +155,10 @@ func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
 	err = database.UpdateKeyword(r.db, kwId, kwName, args, docs)
 
 	if err != nil {
-		// this should be printed as message in html
-		log.Fatalf("Failed to update Keyword: %s", err)
+		addMessage(fmt.Sprintf("Failed to edit Keyword '%s'!", kwName), "danger")
+	} else {
+		addMessage(fmt.Sprintf("Keyword '%s' was successfully updated.", kwName), "success")
 	}
-	// flash message that kw is updated in db
 
 	return c.Render("views/edit", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title":  fmt.Sprintf("Edit %s Keyword", kwName),
@@ -161,10 +176,10 @@ func (r *Router) HandleDeleteKeyword(c *fiber.Ctx) error {
 
 	err = database.DeleteKeyword(r.db, kwId)
 	if err != nil {
-		// this should be printed as message in html
-		log.Fatalf("Failed to delete kw: %s", err)
+		addMessage(fmt.Sprintf("Failed to delete Keyword. Id: %d", kwId), "danger")
+	} else {
+		addMessage(fmt.Sprintf("Keyword deleted successfully. Id: %d", kwId), "primary")
 	}
-	// add message that kw was successfully deleted
 
 	return r.HandleIndex(c)
 }

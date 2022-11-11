@@ -25,12 +25,11 @@ func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kw_typ
 	return nil
 }
 
-//InsertNewKeyword update given keyword record in database.
+//UpdateKeyword update given keyword record in database.
 func UpdateKeyword(db *gorm.DB, id int, name string, args string, docs string) error {
 	var keyword Keyword
-	kw := db.First(&keyword, id)
-	// kw with given id does not exists
-	if kw.Error != nil {
+	result := db.First(&keyword, id)
+	if result.Error != nil {
 		return errors.New(fmt.Sprintf("Failed to get Keyword with given ID: %d", id))
 	}
 	now := time.Now()
@@ -50,9 +49,8 @@ func UpdateKeyword(db *gorm.DB, id int, name string, args string, docs string) e
 //DeleteKeyword delete keyword record by id in database.
 func DeleteKeyword(db *gorm.DB, id int) error {
 	var keyword Keyword
-	kw := db.First(&keyword, id)
-	// kw with given id does not exists
-	if kw.Error != nil {
+	result := db.First(&keyword, id)
+	if result.Error != nil {
 		return errors.New(fmt.Sprintf("Failed to get Keyword with given ID: %d", id))
 	}
 
