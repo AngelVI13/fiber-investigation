@@ -10,7 +10,7 @@ type Keyword struct {
 	gorm.Model
 	ValidFrom      time.Time `gorm:"autoCreateTime;not null"`
 	ValidTo        *time.Time
-	Name           string `gorm:"not null,unique"`
+	Name           string `gorm:"not null"`
 	Args           string `gorm:"not null"`
 	Docs           string `gorm:"not null"`
 	KwType         string `gorm:"not null"`

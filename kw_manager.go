@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -29,7 +30,20 @@ func main() {
 	})
 
 	router := routes.NewRouter(db)
-	app.Get("/", router.HandleIndex)
+	app.Get(routes.UrlMap["IndexUrl"], router.HandleIndex)
+	app.Get(routes.UrlMap["BusinessKwdsUrl"], router.HandleBusinessKeywords)
+	app.Get(routes.UrlMap["TechnicalKwdsUrl"], router.HandleTechnicalKeywords)
+	app.Get(routes.UrlMap["AllKwdsUrl"], router.HandleAllKeywords)
+
+	app.Get(fmt.Sprintf("%s/:kw_type", routes.UrlMap["CreateKwdUrl"]), router.HandleCreateKeywordGet)
+	app.Post(fmt.Sprintf("%s/:kw_type", routes.UrlMap["CreateKwdUrl"]), router.HandleCreateKeywordPost)
+
+	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["EditKwdUrl"]), router.HandleEditKeywordGet)
+	app.Post(fmt.Sprintf("%s/:id", routes.UrlMap["EditKwdUrl"]), router.HandleEditKeywordPost)
+
+	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["DeleteKwdUrl"]), router.HandleDeleteKeyword)
+
+	app.Get(routes.UrlMap["ChangelogUrl"], router.HandleChangelog)
 
 	log.Fatal(app.Listen(":3000"))
 }

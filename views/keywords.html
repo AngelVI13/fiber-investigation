@@ -5,13 +5,21 @@
 <table id="data" class="table table-striped">
     <caption>Keywords</caption>
     <thead class="table-dark">
-    <tr>
-        <th>Created</th>
-        <th>Name</th>
-        <th>Arguments</th>
-        <th>Documentation</th>
-        <th>Implementation</th>
-    </tr>
+        <tr>
+            <th>Created</th>
+            <th>Name</th>
+            <th>Arguments</th>
+            <th>Documentation</th>
+            <th>Implementation</th>
+            <th>
+                Actions
+                {{if ne .KwType "all"}}
+                <a class="action-icon text-decoration-none" href="/create/{{.KwType}}" title="Create">
+                    <i class="bi bi-plus-circle-fill"></i>
+                </a>
+                {{end}}
+            </th>
+        </tr>
     </thead>
     {{ range .Keywords}}
     <tr>
@@ -20,6 +28,15 @@
         <td>{{ .Args }}</td>
         <td>{{ .Docs }}</td>
         <td>{{ .Implementation }}</td>
+        <td>
+            <a class="action-icon text-decoration-none" href="/edit/{{.ID}}" title="Edit">
+                <i class="bi bi-pencil-fill"></i>
+            </a>
+            <a class="action-icon text-decoration-none" href="/delete/{{.ID}}" title="Delete">
+                <i class="bi bi-trash-fill"></i>
+            </a>
+        </td>
+
     </tr>
     {{ end}}
 </table>
