@@ -233,13 +233,18 @@ func (r *Router) HandleExportStubsGet(c *fiber.Ctx) error {
 }
 
 func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
-	value := c.FormValue("kw_type")
+	stubType := c.FormValue("stub_type")
 
-	log.Println(value)
+    // TODO: abstract away database layer to something like r.db.Keywords()
+	var keywords []database.Keyword
 
-	return r.renderMainLayout(c, "views/export_stubs", fiber.Map{
-		"Title":      "Download Keywords stubs:",
-		"PythonStub": PythonStub,
-		"RfStub":     RfStub,
-	})
+	result := r.db.Where("valid_to IS NULL").Find(&keywords)
+	if result.Error != nil {
+		addMessage("There are no keywords", LevelPrimary)
+    }
+
+    log.Println(stubType)
+
+    // TODO: is compression needed ?
+    return c.SendFile("kw_manager.go", true)
 }
