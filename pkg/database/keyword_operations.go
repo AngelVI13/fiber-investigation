@@ -3,8 +3,9 @@ package database
 import (
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 //InsertNewKeyword insert new keyword to database. In case it already exist, raises error
@@ -63,4 +64,56 @@ func DeleteKeyword(db *gorm.DB, id int) error {
 	db.Create(&history_record)
 
 	return nil
+}
+
+func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keyword, error) {
+	var allVersions []History
+	var keywords []Keyword
+	result := db.Find(&allVersions)
+	if result.Error != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to fetch version information."))
+	}
+
+	var latestVersion History
+	result = db.Last(&latestVersion)
+	if result.Error != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to get last version information."))
+	}
+
+	if latestVersion.ID == uint(version) {
+
+		result = db.Where("kw_type = ? and valid_to IS NULL", kwType).Find(&keywords)
+		if result.Error != nil {
+			return nil, errors.New(fmt.Sprintf("Failed to get '%s' keywords for version: %d", kwType, version))
+		}
+		return keywords, nil
+	}
+
+	var selectedVersion History
+	var nextVersion History
+	result = db.First(&selectedVersion, version)
+	if result.Error != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to get version with ID: %d.", version))
+	}
+
+	result = db.First(&nextVersion, version+1)
+	if result.Error != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to get version with ID: %d.", version+1))
+	}
+
+	// It might be the case that no kwds are found. so no error checking is done
+	_ = db.Where(
+		`(
+			(valid_to IS NULL AND valid_from <= ?) 
+			OR 
+			(valid_to IS NOT NULL AND valid_form <= ? AND valid_to >= ?)
+		) 
+		AND kw_type = ?`,
+		selectedVersion.CreatedAt,
+		selectedVersion.CreatedAt,
+		nextVersion.CreatedAt,
+		kwType,
+	).Find(&keywords)
+
+	return keywords, nil
 }

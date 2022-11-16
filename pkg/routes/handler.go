@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
@@ -194,4 +195,24 @@ func (r *Router) HandleChangelog(c *fiber.Ctx) error {
 		"Title":   "Changelog",
 		"History": history,
 	}), r.mainLayout)
+}
+
+func (r Router) HandleKeywordVersion(c *fiber.Ctx) error {
+	versionId, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		addMessage(fmt.Sprintf("Version id must be number, got: %s", c.Params("id")), LevelDanger)
+		return r.HandleIndex(c)
+	}
+	kwType := c.Params("kw_type")
+
+	kwds, err := database.GetAllKeywordsForVersion(r.db, versionId,kwType)
+	log.Fatalf("kwds: %v", kwds)
+	
+
+	var keywords []database.Keyword
+	result := r.db.Where("kw_type = ? AND valid_to IS NULL", kwType).Find(&keywords)
+	if result.Error != nil {
+		addMessage("There is no business keywords to display", LevelPrimary)
+	}
+	return nil
 }

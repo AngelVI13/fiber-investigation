@@ -1,0 +1,14 @@
+<label>Version:</label>
+<select class="form-select form-select-sm" name="revision" onchange="this.options[this.selectedIndex].value && (window.location = `/{{kw_filter}}/revision/${this.options[this.selectedIndex].value}`);" style="width:auto;" >
+    
+    {% for revision in revisions[::-1] %}
+        {% set revision_id = revision.split(' ')[0]|int %}
+        {% if revision_id == latest_rev %}
+            <option value="{{revision_id}}" selected>{{revision_id}} Latest</option>
+        {% elif selected_revision == revision_id %}
+            <option value="{{revision_id}}" selected>{{revision}}</option>
+        {% else %}
+            <option value="{{revision_id}}">{{revision}}</option>
+        {% endif %}
+    {% endfor %}
+</select>
