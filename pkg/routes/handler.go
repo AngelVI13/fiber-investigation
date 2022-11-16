@@ -20,7 +20,7 @@ var UrlMap = map[string]string{
 	"DeleteKwdUrl":     "/delete",
 	"ChangelogUrl":     "/changelog",
 	"ExportCsvUrl":     "/export/csv",
-	"ExportStubsUrl":     "/export/stubs",
+	"ExportStubsUrl":   "/export/stubs",
 }
 
 // UpdateMap update map `n` with values from map `m`
@@ -46,11 +46,26 @@ func NewRouter(db *gorm.DB) *Router {
 	}
 }
 
+// render Wrapper for c.Render that makes sure to update
+// props with UrlMap & provide main layout.
+func (r *Router) renderMainLayout(
+	c *fiber.Ctx,
+	template string,
+	props fiber.Map,
+	layouts ...string,
+) error {
+	return c.Render(
+		template,
+		UpdateFiberMap(UrlMap, props),
+		append(layouts, r.mainLayout)...,
+	)
+}
+
 func (r *Router) HandleIndex(c *fiber.Ctx) error {
 	// Render index - start with views directory
-	return c.Render("views/index", UpdateFiberMap(UrlMap, fiber.Map{
+    return r.renderMainLayout(c, "views/index", fiber.Map{
 		"Title": "Keyword storage",
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
@@ -59,11 +74,11 @@ func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no business keywords to display", LevelPrimary)
 	}
-	return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
+    return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":    "Business Keywords",
 		"Keywords": keywords,
 		"KwType":   "business",
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
@@ -72,11 +87,11 @@ func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no business keywords to display", LevelPrimary)
 	}
-	return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
+	return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":    "Technical Keywords",
 		"Keywords": keywords,
 		"KwType":   "technical",
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
@@ -85,18 +100,18 @@ func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no keywords to display", LevelPrimary)
 	}
-	return c.Render("views/keywords", UpdateFiberMap(UrlMap, fiber.Map{
+	return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":    "All Keywords",
 		"Keywords": keywords,
 		"KwType":   "all",
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleCreateKeywordGet(c *fiber.Ctx) error {
 	kw_type := c.Params("kw_type")
-	return c.Render("views/create", UpdateFiberMap(UrlMap, fiber.Map{
+	return r.renderMainLayout(c, "views/create", fiber.Map{
 		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
@@ -115,9 +130,9 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 		addMessage(fmt.Sprintf("Added new Keyword '%s'", c.FormValue("name")), LevelSuccess)
 	}
 	// add message that kw was successfully added
-	return c.Render("views/create", UpdateFiberMap(UrlMap, fiber.Map{
+	return r.renderMainLayout(c, "views/create", fiber.Map{
 		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleEditKeywordGet(c *fiber.Ctx) error {
@@ -134,12 +149,12 @@ func (r *Router) HandleEditKeywordGet(c *fiber.Ctx) error {
 		return r.HandleIndex(c)
 	}
 
-	return c.Render("views/edit", UpdateFiberMap(UrlMap, fiber.Map{
+	return r.renderMainLayout(c, "views/edit", fiber.Map{
 		"Title":  fmt.Sprintf("Edit %s Keyword", keyword.Name),
 		"KwName": keyword.Name,
 		"Args":   keyword.Args,
 		"Docs":   keyword.Docs,
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
@@ -161,12 +176,12 @@ func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
 		addMessage(fmt.Sprintf("Keyword '%s' was successfully updated.", kwName), LevelDanger)
 	}
 
-	return c.Render("views/edit", UpdateFiberMap(UrlMap, fiber.Map{
+	return r.renderMainLayout(c, "views/edit", fiber.Map{
 		"Title":  fmt.Sprintf("Edit %s Keyword", kwName),
 		"KwName": kwName,
 		"Args":   args,
 		"Docs":   docs,
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleDeleteKeyword(c *fiber.Ctx) error {
@@ -193,38 +208,38 @@ func (r *Router) HandleChangelog(c *fiber.Ctx) error {
 		addMessage("There is no versions to display", LevelPrimary)
 	}
 
-	return c.Render("views/changelog", UpdateFiberMap(UrlMap, fiber.Map{
+	return r.renderMainLayout(c, "views/changelog", fiber.Map{
 		"Title":   "Changelog",
 		"History": history,
-	}), r.mainLayout)
+	})
 }
 
 func (r *Router) HandleExportCsv(c *fiber.Ctx) error {
-    log.Println("Export CSV")
-    return nil
+	log.Println("Export CSV")
+	return nil
 }
 
 const (
-    PythonStub = "python"
-    RfStub = "rf"
+	PythonStub = "python"
+	RfStub     = "rf"
 )
 
 func (r *Router) HandleExportStubsGet(c *fiber.Ctx) error {
-	return c.Render("views/export_stubs", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title":   "Download Keywords stubs:",
-        "PythonStub": PythonStub,
-        "RfStub": RfStub,
-	}), r.mainLayout)
+	return r.renderMainLayout(c, "views/export_stubs", fiber.Map{
+		"Title":      "Download Keywords stubs:",
+		"PythonStub": PythonStub,
+		"RfStub":     RfStub,
+	})
 }
 
 func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
 	value := c.FormValue("kw_type")
 
-    log.Println(value)
+	log.Println(value)
 
-	return c.Render("views/export_stubs", UpdateFiberMap(UrlMap, fiber.Map{
-		"Title":   "Download Keywords stubs:",
-        "PythonStub": PythonStub,
-        "RfStub": RfStub,
-	}), r.mainLayout)
+	return r.renderMainLayout(c, "views/export_stubs", fiber.Map{
+		"Title":      "Download Keywords stubs:",
+		"PythonStub": PythonStub,
+		"RfStub":     RfStub,
+	})
 }
