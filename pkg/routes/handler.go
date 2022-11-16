@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
@@ -18,6 +19,8 @@ var UrlMap = map[string]string{
 	"EditKwdUrl":       "/edit",
 	"DeleteKwdUrl":     "/delete",
 	"ChangelogUrl":     "/changelog",
+	"ExportCsvUrl":     "/export/csv",
+	"ExportStubsUrl":     "/export/stubs",
 }
 
 // UpdateMap update map `n` with values from map `m`
@@ -108,7 +111,7 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 	)
 	if err != nil {
 		addMessage(fmt.Sprintf("Failed to create new Keyword '%s'!", c.FormValue("name")), LevelDanger)
-	} else{
+	} else {
 		addMessage(fmt.Sprintf("Added new Keyword '%s'", c.FormValue("name")), LevelSuccess)
 	}
 	// add message that kw was successfully added
@@ -193,5 +196,35 @@ func (r *Router) HandleChangelog(c *fiber.Ctx) error {
 	return c.Render("views/changelog", UpdateFiberMap(UrlMap, fiber.Map{
 		"Title":   "Changelog",
 		"History": history,
+	}), r.mainLayout)
+}
+
+func (r *Router) HandleExportCsv(c *fiber.Ctx) error {
+    log.Println("Export CSV")
+    return nil
+}
+
+const (
+    PythonStub = "python"
+    RfStub = "rf"
+)
+
+func (r *Router) HandleExportStubsGet(c *fiber.Ctx) error {
+	return c.Render("views/export_stubs", UpdateFiberMap(UrlMap, fiber.Map{
+		"Title":   "Download Keywords stubs:",
+        "PythonStub": PythonStub,
+        "RfStub": RfStub,
+	}), r.mainLayout)
+}
+
+func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
+	value := c.FormValue("kw_type")
+
+    log.Println(value)
+
+	return c.Render("views/export_stubs", UpdateFiberMap(UrlMap, fiber.Map{
+		"Title":   "Download Keywords stubs:",
+        "PythonStub": PythonStub,
+        "RfStub": RfStub,
 	}), r.mainLayout)
 }
