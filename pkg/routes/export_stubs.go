@@ -35,64 +35,67 @@ func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
 	result := r.db.Where("valid_to IS NULL").Find(&keywords)
 	if result.Error != nil {
 		addMessage("There are no keywords", LevelPrimary)
+		// this will reload page and show message
+		return r.HandleExportStubsGet(c)
 	}
 
-	log.Println(stubType)
+	var stubGenerator StubGenerator
+	if stubType == RfStub {
+		stubGenerator = &RfStubGenerator{}
+	}
 
-	// TODO: is compression needed ?
-	return c.SendFile("kw_manager.go", true)
+	filename, err := generateStubsFile(stubGenerator, keywords)
+	if err != nil {
+		addMessage(
+			fmt.Sprintf("Error while generating stubs file: %v", err),
+			LevelDanger,
+		)
+        return r.HandleExportStubsGet(c)
+	}
+
+    c.Attachment(filepath.Base(filename))
+	return c.SendFile(filename, true)
 }
 
 const TabSize = 4
 
 var Indent = strings.Repeat(" ", TabSize)
 
-type PyStubGenerator struct {
-	filename string
-	template string
-}
+type PyStubGenerator struct{}
 
-type RfStubGenerator struct {
-	filename string
-	template string
-}
+type RfStubGenerator struct{}
 
-func NewRfStubGenerator() *RfStubGenerator {
-	template := `
+func (g *RfStubGenerator) Template() string {
+	return `
 {{.Name}}
     [Documentation]  {{.Docs}}
     [Arguments]      {{.Args}}
     Log 	         NOP
 
     `
-	filename := "stubs.robot"
-
-	return &RfStubGenerator{
-		template: template,
-		filename: filename,
-	}
 }
 
 func (g *RfStubGenerator) Filename() string {
-	return g.filename
+	return "stubs.robot"
 }
 
-func (g *RfStubGenerator) GenerateStubs(keywords []database.Keyword) (string, error) {
-    /*
-        out = "*** Keywords ***\n"
-        for kw in keywords:
-            name = self.generate_rf_name(kw.name)
-            docs = self.generate_rf_docs(kw.docs)
-            kw_txt = template.format(name=name, args=kw.args, docs=docs)
-            out += kw_txt
-        return out
-    */
-	return "", nil
+func (g *RfStubGenerator) Header() string {
+	return "*** Keywords ***\n"
+}
+
+func (g *RfStubGenerator) TemplateProps(keyword database.Keyword) map[string]any {
+	return map[string]any{
+		"Name": keyword.Name,
+		"Docs": keyword.Docs,
+		"Args": keyword.Args,
+	}
 }
 
 type StubGenerator interface {
-	GenerateStubs([]database.Keyword) (string, error)
 	Filename() string
+	Header() string
+	TemplateProps(database.Keyword) map[string]any
+	Template() string
 }
 
 func generateStubsFile(g StubGenerator, keywords []database.Keyword) (string, error) {
@@ -100,7 +103,7 @@ func generateStubsFile(g StubGenerator, keywords []database.Keyword) (string, er
 
 	_ = os.Remove(filename)
 
-	txt, err := g.GenerateStubs(keywords)
+	txt, err := generateStubs(g, keywords)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate stubs: %v", err)
 	}
@@ -111,6 +114,22 @@ func generateStubsFile(g StubGenerator, keywords []database.Keyword) (string, er
 	}
 
 	return filepath.Abs(filename)
+}
+
+func generateStubs(g StubGenerator, keywords []database.Keyword) (string, error) {
+	out := g.Header()
+
+	for _, kw := range keywords {
+		props := g.TemplateProps(kw)
+
+		kwTxt, err := formatTemplate(g.Template(), props)
+		if err != nil {
+			return "", err
+		}
+		out += kwTxt
+	}
+
+	return out, nil
 }
 
 func formatTemplate(fmt string, args map[string]interface{}) (string, error) {
