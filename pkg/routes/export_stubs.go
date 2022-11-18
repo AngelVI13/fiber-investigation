@@ -3,7 +3,6 @@ package routes
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -83,10 +82,32 @@ func (g *RfStubGenerator) Header() string {
 	return "*** Keywords ***\n"
 }
 
+// Name Clean keyword name to be suitable for robot file style
+// Remove all leading/trailing whitespaces and any extra spaces between words
+func (g *RfStubGenerator) Name(keyword string) string {
+    fields := strings.Fields(keyword)
+    return strings.Join(fields, " ")
+}
+
+// Docs Clean keyword docs to be suitable for robot file style
+func (g *RfStubGenerator) Docs(docs string) string {
+    /*
+
+        keyword_docs = keyword_docs.strip()
+        lines = keyword_docs.splitlines(keepends=True)
+        doc_lines = [f'{cls.INDENT}...{cls.INDENT}{line}' for line in lines[1:]]
+        # The first line does not need the above prefix because it gets added to the
+        # [Documentation] part of docstring
+        doc_lines.insert(0, lines[0])
+        return "".join(doc_lines)
+    */
+    return docs
+}
+
 func (g *RfStubGenerator) TemplateProps(keyword database.Keyword) map[string]any {
 	return map[string]any{
-		"Name": keyword.Name,
-		"Docs": keyword.Docs,
+		"Name": g.Name(keyword.Name),
+		"Docs": g.Docs(keyword.Docs),
 		"Args": keyword.Args,
 	}
 }
