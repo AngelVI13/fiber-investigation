@@ -1,6 +1,9 @@
 package routes
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 
 func FuzzRfStubGeneratorName(f *testing.F) {
@@ -23,3 +26,12 @@ func FuzzRfStubGeneratorName(f *testing.F) {
     })
 }
 
+func TestRfStubGeneratorHeader(t *testing.T) {
+    rfStubGenerator := RfStubGenerator{}
+
+    header := rfStubGenerator.Header()
+
+    if !strings.Contains(header, "*** Keywords ***") {
+        t.Errorf("missing keyword section in rf header: %s", header)
+    }
+}
