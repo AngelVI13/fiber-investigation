@@ -49,10 +49,10 @@ func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
 			fmt.Sprintf("Error while generating stubs file: %v", err),
 			LevelDanger,
 		)
-        return r.HandleExportStubsGet(c)
+		return r.HandleExportStubsGet(c)
 	}
 
-    c.Attachment(filepath.Base(filename))
+	c.Attachment(filepath.Base(filename))
 	return c.SendFile(filename, true)
 }
 
@@ -85,23 +85,29 @@ func (g *RfStubGenerator) Header() string {
 // Name Clean keyword name to be suitable for robot file style
 // Remove all leading/trailing whitespaces and any extra spaces between words
 func (g *RfStubGenerator) Name(keyword string) string {
-    fields := strings.Fields(keyword)
-    return strings.Join(fields, " ")
+	fields := strings.Fields(keyword)
+	return strings.Join(fields, " ")
 }
 
 // Docs Clean keyword docs to be suitable for robot file style
 func (g *RfStubGenerator) Docs(docs string) string {
-    /*
+	docs = strings.TrimSpace(docs)
+	lines := strings.SplitAfter(docs, "\n")
 
-        keyword_docs = keyword_docs.strip()
-        lines = keyword_docs.splitlines(keepends=True)
-        doc_lines = [f'{cls.INDENT}...{cls.INDENT}{line}' for line in lines[1:]]
-        # The first line does not need the above prefix because it gets added to the
-        # [Documentation] part of docstring
-        doc_lines.insert(0, lines[0])
-        return "".join(doc_lines)
-    */
-    return docs
+	cleanDocs := ""
+	for i, line := range lines {
+		if i == 0 {
+			// The first line does not need the above prefix because it gets
+			// added to the [Documentation] part of the docstring
+			cleanDocs += line
+			continue
+		}
+
+		// Add '...' and an appropriate indentation to each line of the docs
+		cleanDocs += fmt.Sprintf("%s...%s%s", Indent, Indent, line)
+	}
+
+	return cleanDocs
 }
 
 func (g *RfStubGenerator) TemplateProps(keyword database.Keyword) map[string]any {
