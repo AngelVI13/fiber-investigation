@@ -56,12 +56,89 @@ This method is used for clearing previous program in order to boot to standby.
 
 	cleanDocs := rfStubGenerator.Docs(rawDocs)
 
-	expParts := strings.SplitAfter(expDocs, "\n")
-	cleanParts := strings.SplitAfter(cleanDocs, "\n")
+    compareDocs(expDocs, cleanDocs, t)
+}
+
+func TestPyStubGeneratorDocs(t *testing.T) {
+	pyStubGenerator := PyStubGenerator{}
+
+	rawDocs := `
+Switches the device on and off in order to clear last (previous) program.
+
+If system error occurs and the device is restarted, it attempts to boot to the same 
+    program that was running before the error. 
+This method is used for clearing previous program in order to boot to standby.
+
+
+    `
+	expDocs := `Switches the device on and off in order to clear last (previous) program.
+    
+    If system error occurs and the device is restarted, it attempts to boot to the same 
+        program that was running before the error. 
+    This method is used for clearing previous program in order to boot to standby.`
+
+	cleanDocs := pyStubGenerator.Docs(rawDocs)
+
+    compareDocs(expDocs, cleanDocs, t)
+}
+
+func FuzzPyStubGeneratorRawName(f *testing.F) {
+	pyStubGenerator := PyStubGenerator{}
+
+	f.Add("My keyword name", "My keyword name")
+	f.Add("My  keyword name", "My keyword name")
+	f.Add("My keyword  name", "My keyword name")
+	f.Add("    My keyword name", "My keyword name")
+	f.Add("My keyword name    ", "My keyword name")
+	f.Add("  My keyword name  ", "My keyword name")
+	f.Add(" My  keyword name  ", "My keyword name")
+
+	f.Fuzz(func(t *testing.T, rawName string, expName string) {
+		cleanName := pyStubGenerator.RawName(rawName)
+
+		if cleanName != expName {
+			t.Errorf("wrong py raw name: expected '%s' but got '%s'", expName, cleanName)
+		}
+	})
+}
+
+func FuzzPyStubGeneratorName(f *testing.F) {
+	pyStubGenerator := PyStubGenerator{}
+
+	f.Add("My keyword name", "my_keyword_name")
+	f.Add("My  keyword name", "my_keyword_name")
+	f.Add("My keyword  name", "my_keyword_name")
+	f.Add("    My keyword name", "my_keyword_name")
+	f.Add("My keyword name    ", "my_keyword_name")
+	f.Add("  My keyword name  ", "my_keyword_name")
+	f.Add(" My  keyword name  ", "my_keyword_name")
+
+	f.Fuzz(func(t *testing.T, rawName string, expName string) {
+		cleanName := pyStubGenerator.Name(rawName)
+
+		if cleanName != expName {
+			t.Errorf("wrong py method name: expected '%s' but got '%s'", expName, cleanName)
+		}
+	})
+}
+
+func TestPyStubGeneratorHeader(t *testing.T) {
+	pyStubGenerator := PyStubGenerator{}
+
+	header := pyStubGenerator.Header()
+
+	if !strings.Contains(header, "from robot.api.deco import keyword") {
+		t.Errorf("missing keyword import in py header: %s", header)
+	}
+}
+
+func compareDocs(exp, act string, t *testing.T) {
+	expParts := strings.SplitAfter(exp, "\n")
+	cleanParts := strings.SplitAfter(act, "\n")
 
 	if len(expParts) != len(cleanParts) {
 		t.Errorf(
-			"wrong number of rf docs lines: expected %d but got %d",
+			"wrong number of py docs lines: expected %d but got %d",
 			len(expParts),
 			len(cleanParts),
 		)
@@ -72,7 +149,7 @@ This method is used for clearing previous program in order to boot to standby.
 		cleanLine := cleanParts[i]
 
 		if expLine != cleanLine {
-			t.Errorf("wrong format of rf docs (line %d): \nexpected: \n%s\ngot:\n%s",
+			t.Errorf("wrong format of py docs (line %d): \nexpected: \n%s\ngot:\n%s",
 				i,
 				strconv.Quote(expLine),
 				strconv.Quote(cleanLine),

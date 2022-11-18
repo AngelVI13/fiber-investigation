@@ -62,6 +62,76 @@ var Indent = strings.Repeat(" ", TabSize)
 
 type PyStubGenerator struct{}
 
+func (g *PyStubGenerator) Template() string {
+	return `
+@keyword("{{.RawName}}")
+def {{.Name}}({{.Args}}):
+    """
+    {{docs}}
+    """
+    pass
+
+    `
+}
+
+func (g *PyStubGenerator) Filename() string {
+	return "stubs.py"
+}
+
+func (g *PyStubGenerator) Header() string {
+	return "from robot.api.deco import keyword\n"
+}
+
+func (g *PyStubGenerator) RawName(keyword string) string {
+	fields := strings.Fields(keyword)
+	return strings.Join(fields, " ")
+}
+
+// Name Clean keyword name to be suitable for python method name
+// Remove all leading/trailing whitespaces and any extra spaces between words.
+// Lowercase all characters and join words with underscores.
+func (g *PyStubGenerator) Name(keyword string) string {
+	fields := strings.Fields(keyword)
+
+    var newFields []string
+    for _, f := range fields {
+        newFields = append(newFields, strings.ToLower(f))
+    }
+
+	return strings.Join(newFields, "_")
+}
+
+// Docs Clean keyword docs to be suitable for python docstring style
+func (g *PyStubGenerator) Docs(docs string) string {
+	docs = strings.TrimSpace(docs)
+	lines := strings.SplitAfter(docs, "\n")
+
+	cleanDocs := ""
+	for i, line := range lines {
+		if i == 0 {
+			// The first line does not need the above prefix because it gets
+			// added to the [Documentation] part of the docstring
+			cleanDocs += line
+			continue
+		}
+
+		// Add an appropriate indentation to each line of the docs
+		cleanDocs += fmt.Sprintf("%s%s", Indent, line)
+	}
+
+	return cleanDocs
+}
+
+func (g *PyStubGenerator) TemplateProps(keyword database.Keyword) map[string]any {
+	return map[string]any{
+		"RawName": g.RawName(keyword.Name),
+		"Name": g.Name(keyword.Name),
+		"Docs": g.Docs(keyword.Docs),
+		"Args": keyword.Args,
+	}
+}
+
+
 type RfStubGenerator struct{}
 
 func (g *RfStubGenerator) Template() string {
