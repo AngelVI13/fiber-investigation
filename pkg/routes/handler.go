@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"strconv"
+	"log"
 
 	"html/template"
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
