@@ -1,9 +1,13 @@
 package routes
 
 import (
+	"os"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/AngelVI13/fiber-investigation/pkg/database"
 )
 
 func FuzzRfStubGeneratorName(f *testing.F) {
@@ -56,7 +60,7 @@ This method is used for clearing previous program in order to boot to standby.
 
 	cleanDocs := rfStubGenerator.Docs(rawDocs)
 
-    compareDocs(expDocs, cleanDocs, t)
+	compareDocs(expDocs, cleanDocs, t)
 }
 
 func TestPyStubGeneratorDocs(t *testing.T) {
@@ -79,7 +83,7 @@ This method is used for clearing previous program in order to boot to standby.
 
 	cleanDocs := pyStubGenerator.Docs(rawDocs)
 
-    compareDocs(expDocs, cleanDocs, t)
+	compareDocs(expDocs, cleanDocs, t)
 }
 
 func FuzzPyStubGeneratorRawName(f *testing.F) {
@@ -129,6 +133,107 @@ func TestPyStubGeneratorHeader(t *testing.T) {
 
 	if !strings.Contains(header, "from robot.api.deco import keyword") {
 		t.Errorf("missing keyword import in py header: %s", header)
+	}
+}
+
+func TestGenerateStubsFileRf(t *testing.T) {
+	keyword, _, _ := exampleKeywordAndStubs()
+	stubGenerator := &RfStubGenerator{}
+
+	checkGenerateStubsFile(stubGenerator, []database.Keyword{keyword}, t)
+}
+
+func TestGenerateStubsFilePy(t *testing.T) {
+	keyword, _, _ := exampleKeywordAndStubs()
+	stubGenerator := &PyStubGenerator{}
+
+	checkGenerateStubsFile(stubGenerator, []database.Keyword{keyword}, t)
+}
+
+func TestGenerateStubsRf(t *testing.T) {
+	keyword, _, rfStub := exampleKeywordAndStubs()
+	stubGenerator := &RfStubGenerator{}
+
+	checkGenerateStubs(stubGenerator, keyword, rfStub, t)
+}
+
+func TestGenerateStubsPy(t *testing.T) {
+	keyword, pyStub, _ := exampleKeywordAndStubs()
+	stubGenerator := &PyStubGenerator{}
+
+	checkGenerateStubs(stubGenerator, keyword, pyStub, t)
+}
+
+func exampleKeywordAndStubs() (keyword database.Keyword, pyStub string, rfStub string) {
+	now := time.Now()
+	keyword = database.Keyword{
+		ValidFrom:      now,
+		ValidTo:        nil,
+		Name:           "My keyword name",
+		Args:           "arg1='a', arg2='b'",
+		Docs:           "Very important docstring",
+		KwType:         "",
+		Implementation: "",
+	}
+
+	pyStub = `from robot.api.deco import keyword
+
+@keyword("My keyword name")
+def my_keyword_name(arg1='a', arg2='b'):
+    """
+    Very important docstring
+    """
+    pass
+
+    `
+
+	rfStub = `*** Keywords ***
+
+My keyword name
+    [Documentation]  Very important docstring
+    [Arguments]      arg1='a', arg2='b'
+    Log 	         NOP
+
+    `
+	return keyword, pyStub, rfStub
+}
+
+func checkGenerateStubs(
+	stubGenerator StubGenerator,
+	keyword database.Keyword,
+	expStub string,
+	t *testing.T,
+) {
+	generatedStub, err := generateStubs(stubGenerator, []database.Keyword{keyword})
+	if err != nil {
+		t.Errorf("error while generating stubs: %v", err)
+	}
+
+	if generatedStub != expStub {
+		t.Errorf(
+			"mismatch between expected and generated stub:\nexpected:\n%s\nactual:\n%s",
+			strconv.Quote(expStub),
+			strconv.Quote(generatedStub),
+		)
+	}
+}
+
+func checkGenerateStubsFile(
+	stubGenerator StubGenerator,
+	keywords []database.Keyword,
+	t *testing.T,
+) {
+	filename, err := generateStubsFile(stubGenerator, keywords)
+	if err != nil {
+		t.Errorf("error while generating stubs file: %v", err)
+	}
+
+	if filename == "" {
+		t.Errorf("no filename provided")
+	}
+
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		t.Errorf("generated stubs file doesn't exist: %v", err)
 	}
 }
 

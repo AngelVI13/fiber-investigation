@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -41,7 +42,15 @@ func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
 	var stubGenerator StubGenerator
 	if stubType == RfStub {
 		stubGenerator = &RfStubGenerator{}
-	}
+	} else if stubType == PythonStub {
+        stubGenerator = &PyStubGenerator{}
+    } else {
+        addMessage(
+            fmt.Sprintf("Unsupported stub type %s", strconv.Quote(stubType)), 
+            LevelDanger,
+        )
+        return r.HandleExportStubsGet(c)
+    }
 
 	filename, err := generateStubsFile(stubGenerator, keywords)
 	if err != nil {
@@ -67,7 +76,7 @@ func (g *PyStubGenerator) Template() string {
 @keyword("{{.RawName}}")
 def {{.Name}}({{.Args}}):
     """
-    {{docs}}
+    {{.Docs}}
     """
     pass
 
@@ -233,7 +242,6 @@ func formatTemplate(fmt string, args map[string]interface{}) (string, error) {
 	var msg bytes.Buffer
 
 	tmpl, err := template.New("").Parse(fmt)
-
 	if err != nil {
 		return fmt, err
 	}
