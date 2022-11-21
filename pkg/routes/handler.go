@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gofiber/fiber/v2"
@@ -116,11 +117,34 @@ func (r *Router) HandleCreateKeywordGet(c *fiber.Ctx) error {
 func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 	kw_type := c.Params("kw_type")
 
+	nameValue := c.FormValue("name")
+	argsValue := c.FormValue("args")
+	docsValue := c.FormValue("docs")
+
+	notAllowedCharset := "|"
+
+	if strings.ContainsAny(nameValue, notAllowedCharset) ||
+		strings.ContainsAny(argsValue, notAllowedCharset) ||
+		strings.ContainsAny(docsValue, notAllowedCharset) {
+		addMessage(
+			fmt.Sprintf(
+				`Can't create new Keyword '%s'!
+                Some of the fields below contains one or more not allowed characters(%s)`,
+				nameValue,
+				notAllowedCharset,
+			),
+			LevelDanger,
+		)
+
+		// TODO: how to keep the filled data after the refresh
+		return r.HandleCreateKeywordGet(c)
+	}
+
 	err := database.InsertNewKeyword(
 		r.db,
-		c.FormValue("name"),
-		c.FormValue("args"),
-		c.FormValue("docs"),
+		nameValue,
+		argsValue,
+		docsValue,
 		kw_type,
 	)
 	if err != nil {
