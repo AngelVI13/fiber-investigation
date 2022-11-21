@@ -60,17 +60,12 @@ func generateCsvFile(filename string, keywords []database.Keyword) (string, erro
 }
 
 func generateCsv(keywords []database.Keyword) (string, error) {
-	var keywordsCsv []*KeywordCsv
+    var keywordsCsv []*database.KeywordProps
 
-	for _, kw := range keywords {
-		keywordsCsv = append(keywordsCsv, &KeywordCsv{
-			Name:           kw.Name,
-			Args:           kw.Args,
-			Docs:           kw.Docs,
-			KwType:         kw.KwType,
-			Implementation: kw.Implementation,
-		})
-	}
+    // NOTE: need to use index in order to take a pointer of correct element
+    for i := range keywords {
+        keywordsCsv = append(keywordsCsv, &keywords[i].KeywordProps)
+    }
 
     // TODO: What to do with the separator character? 
     // Can't use comma cause this might be used in the docs or args or impl
@@ -87,11 +82,3 @@ func generateCsv(keywords []database.Keyword) (string, error) {
 	return csvContents, nil
 }
 
-type KeywordCsv struct {
-	// you can use "-" to ignore a field
-	Name           string `csv:"name"`
-	Args           string `csv:"args"`
-	Docs           string `csv:"docs"`
-	KwType         string `csv:"type"`
-	Implementation string `csv:"implementation"`
-}
