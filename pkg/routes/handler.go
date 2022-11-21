@@ -2,9 +2,9 @@ package routes
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 
+	"html/template"
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -74,10 +74,23 @@ func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no business keywords to display", LevelPrimary)
 	}
+	allVersions, err := database.GetVersions(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
+	latestVersion, err := database.GetLatestVersion(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
     return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":    "Business Keywords",
 		"Keywords": keywords,
-		"KwType":   "business",
+		"KwType":   template.JS("business"),
+		"Versions": allVersions,
+		"LatestVersion": latestVersion.ID,
+		"SelectedVersion": latestVersion.ID,
 	})
 }
 
@@ -87,10 +100,24 @@ func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no business keywords to display", LevelPrimary)
 	}
+	allVersions, err := database.GetVersions(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
+	latestVersion, err := database.GetLatestVersion(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
+
 	return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":    "Technical Keywords",
 		"Keywords": keywords,
-		"KwType":   "technical",
+		"KwType":   template.JS("technical"),
+		"Versions": allVersions,
+		"LatestVersion": latestVersion.ID,
+		"SelectedVersion": latestVersion.ID,
 	})
 }
 
@@ -100,10 +127,23 @@ func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no keywords to display", LevelPrimary)
 	}
+	allVersions, err := database.GetVersions(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
+	latestVersion, err := database.GetLatestVersion(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
 	return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":    "All Keywords",
 		"Keywords": keywords,
-		"KwType":   "all",
+		"KwType":   template.JS("all"),
+		"Versions": allVersions,
+		"LatestVersion": latestVersion.ID,
+		"SelectedVersion": latestVersion.ID,
 	})
 }
 
@@ -173,7 +213,7 @@ func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
 	if err != nil {
 		addMessage(fmt.Sprintf("Failed to edit Keyword '%s'!", kwName), LevelDanger)
 	} else {
-		addMessage(fmt.Sprintf("Keyword '%s' was successfully updated.", kwName), LevelDanger)
+		addMessage(fmt.Sprintf("Keyword '%s' was successfully updated.", kwName), LevelSuccess)
 	}
 
 	return r.renderMainLayout(c, "views/edit", fiber.Map{
@@ -220,18 +260,33 @@ func (r Router) HandleKeywordVersion(c *fiber.Ctx) error {
 		addMessage(fmt.Sprintf("Version id must be number, got: %s", c.Params("id")), LevelDanger)
 		return r.HandleIndex(c)
 	}
-	kwType := c.Params("kw_type")
+	kwType := c.Params("kwType")
 
-	kwds, err := database.GetAllKeywordsForVersion(r.db, versionId,kwType)
-	log.Fatalf("kwds: %v", kwds)
-
-
-	var keywords []database.Keyword
-	result := r.db.Where("kw_type = ? AND valid_to IS NULL", kwType).Find(&keywords)
-	if result.Error != nil {
-		addMessage("There is no business keywords to display", LevelPrimary)
+	kwds, err := database.GetAllKeywordsForVersion(r.db, versionId, kwType)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to fetch keywors information for version: %d", versionId), LevelDanger)
+		return r.HandleIndex(c)
 	}
-	return nil
+	allVersions, err := database.GetVersions(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
+	latestVersion, err := database.GetLatestVersion(r.db)
+	if err != nil {
+		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
+		return r.HandleIndex(c)
+	}
+
+
+	return r.renderMainLayout(c, "views/keywords", fiber.Map{
+		"Title":    fmt.Sprintf("%s Keywords", kwType),
+		"Keywords": kwds,
+		"KwType":   template.JS(kwType),
+		"Versions": allVersions,
+		"LatestVersion": latestVersion.ID,
+		"SelectedVersion": versionId,
+	})
 }
 
 func (r *Router) HandleExportCsv(c *fiber.Ctx) error {

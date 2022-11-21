@@ -9,7 +9,7 @@ import (
 )
 
 //InsertNewKeyword insert new keyword to database. In case it already exist, raises error
-func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kw_type string) error {
+func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kwType string) error {
 	// first check that there is no kw with this name. this looks like not optimal solution
 	var keyword Keyword
 	kw := db.Where("name = ? AND valid_to IS NOT NULL", name).First(&keyword)
@@ -17,8 +17,8 @@ func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kw_typ
 	if kw.Error == nil {
 		return errors.New("Keyword already exist!")
 	}
-	keyword_record := Keyword{Name: name, Args: args, Docs: docs, KwType: kw_type}
-	change := fmt.Sprintf("Add keyword '%s'", name)
+	keyword_record := Keyword{Name: name, Args: args, Docs: docs, KwType: kwType}
+	change := fmt.Sprintf("Add %s keyword '%s'", kwType, name)
 	history_record := History{Change: change}
 	db.Create(&keyword_record)
 	db.Create(&history_record)
@@ -39,7 +39,7 @@ func UpdateKeyword(db *gorm.DB, id int, name string, args string, docs string) e
 
 	keyword_record := Keyword{Name: name, Args: args, Docs: docs, KwType: keyword.KwType}
 	keyword_record.CreatedAt = keyword.CreatedAt
-	change := fmt.Sprintf("Update keyword '%s'", name)
+	change := fmt.Sprintf("Update %s keyword '%s'", keyword.KwType, keyword.Name)
 	history_record := History{Change: change}
 	db.Create(&history_record)
 	db.Create(&keyword_record)
@@ -59,7 +59,7 @@ func DeleteKeyword(db *gorm.DB, id int) error {
 	keyword.ValidTo = &now
 	db.Save(&keyword)
 
-	change := fmt.Sprintf("Delete keyword with ID: '%d'", id)
+	change := fmt.Sprintf("Delete %s keyword '%s'", keyword.KwType, keyword.Name)
 	history_record := History{Change: change}
 	db.Create(&history_record)
 
@@ -67,22 +67,14 @@ func DeleteKeyword(db *gorm.DB, id int) error {
 }
 
 func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keyword, error) {
-	var allVersions []History
 	var keywords []Keyword
-	result := db.Find(&allVersions)
-	if result.Error != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to fetch version information."))
-	}
-
-	var latestVersion History
-	result = db.Last(&latestVersion)
-	if result.Error != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to get last version information."))
+	latestVersion, err := GetLatestVersion(db)
+	if err != nil {
+		return nil, err
 	}
 
 	if latestVersion.ID == uint(version) {
-
-		result = db.Where("kw_type = ? and valid_to IS NULL", kwType).Find(&keywords)
+		result := db.Where("kw_type = ? and valid_to IS NULL", kwType).Find(&keywords)
 		if result.Error != nil {
 			return nil, errors.New(fmt.Sprintf("Failed to get '%s' keywords for version: %d", kwType, version))
 		}
@@ -91,7 +83,7 @@ func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keywor
 
 	var selectedVersion History
 	var nextVersion History
-	result = db.First(&selectedVersion, version)
+	result := db.First(&selectedVersion, version)
 	if result.Error != nil {
 		return nil, errors.New(fmt.Sprintf("Failed to get version with ID: %d.", version))
 	}
@@ -106,7 +98,7 @@ func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keywor
 		`(
 			(valid_to IS NULL AND valid_from <= ?) 
 			OR 
-			(valid_to IS NOT NULL AND valid_form <= ? AND valid_to >= ?)
+			(valid_to IS NOT NULL AND valid_from <= ? AND valid_to >= ?)
 		) 
 		AND kw_type = ?`,
 		selectedVersion.CreatedAt,
@@ -116,4 +108,22 @@ func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keywor
 	).Find(&keywords)
 
 	return keywords, nil
+}
+
+func GetVersions(db *gorm.DB) ([]History, error) {
+	var allVersions []History
+	result := db.Find(&allVersions)
+	if result.Error != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to fetch version information."))
+	}
+	return allVersions, nil
+}
+
+func GetLatestVersion(db *gorm.DB) (History, error) {
+	var latestVersion History
+	result := db.Last(&latestVersion)
+	if result.Error != nil {
+		return latestVersion, errors.New(fmt.Sprintf("Failed to get last version information."))
+	}
+	return latestVersion, nil
 }
