@@ -2,7 +2,6 @@ package routes
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
@@ -63,7 +62,7 @@ func (r *Router) renderMainLayout(
 
 func (r *Router) HandleIndex(c *fiber.Ctx) error {
 	// Render index - start with views directory
-    return r.renderMainLayout(c, "views/index", fiber.Map{
+	return r.renderMainLayout(c, "views/index", fiber.Map{
 		"Title": "Keyword storage",
 	})
 }
@@ -74,7 +73,7 @@ func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no business keywords to display", LevelPrimary)
 	}
-    return r.renderMainLayout(c, "views/keywords", fiber.Map{
+	return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":    "Business Keywords",
 		"Keywords": keywords,
 		"KwType":   "business",
@@ -213,9 +212,3 @@ func (r *Router) HandleChangelog(c *fiber.Ctx) error {
 		"History": history,
 	})
 }
-
-func (r *Router) HandleExportCsv(c *fiber.Ctx) error {
-	log.Println("Export CSV")
-	return nil
-}
-
