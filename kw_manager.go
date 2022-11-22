@@ -43,6 +43,9 @@ func main() {
 
 	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["DeleteKwdUrl"]), router.HandleDeleteKeyword)
 
+	app.Get(routes.UrlMap["ImportCsvUrl"], router.HandleImportCsvGet)
+	app.Post(routes.UrlMap["ImportCsvUrl"], router.HandleImportCsvPost)
+
 	app.Get(routes.UrlMap["ExportCsvUrl"], router.HandleExportCsvGet)
 	app.Post(routes.UrlMap["ExportCsvUrl"], router.HandleExportCsvPost)
 

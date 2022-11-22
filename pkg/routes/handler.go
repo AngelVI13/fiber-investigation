@@ -21,6 +21,7 @@ var UrlMap = map[string]string{
 	"ChangelogUrl":     "/changelog",
 	"ExportCsvUrl":     "/export/csv",
 	"ExportStubsUrl":   "/export/stubs",
+	"ImportCsvUrl":     "/import/csv",
 }
 
 // UpdateMap update map `n` with values from map `m`
