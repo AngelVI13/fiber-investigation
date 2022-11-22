@@ -167,13 +167,15 @@ func TestGenerateStubsPy(t *testing.T) {
 func exampleKeywordAndStubs() (keyword database.Keyword, pyStub string, rfStub string) {
 	now := time.Now()
 	keyword = database.Keyword{
-		ValidFrom:      now,
-		ValidTo:        nil,
-		Name:           "My keyword name",
-		Args:           "arg1='a', arg2='b'",
-		Docs:           "Very important docstring",
-		KwType:         "",
-		Implementation: "",
+		KeywordProps: database.KeywordProps{
+			ValidFrom:      now,
+			ValidTo:        nil,
+			Name:           "My keyword name",
+			Args:           "arg1='a', arg2='b'",
+			Docs:           "Very important docstring",
+			KwType:         "",
+			Implementation: "",
+		},
 	}
 
 	pyStub = `from robot.api.deco import keyword

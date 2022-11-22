@@ -6,15 +6,19 @@ import (
 	"gorm.io/gorm"
 )
 
+type KeywordProps struct {
+	ValidFrom      time.Time  `gorm:"autoCreateTime;not null" csv:"-"`
+	ValidTo        *time.Time `csv:"-"`
+	Name           string     `gorm:"not null" csv:"Name"`
+	Args           string     `gorm:"not null" csv:"Args"`
+	Docs           string     `gorm:"not null" csv:"Docs"`
+	KwType         string     `gorm:"not null" csv:"Type"`
+	Implementation string     `csv:"Implementation"`
+}
+
 type Keyword struct {
 	gorm.Model
-	ValidFrom      time.Time `gorm:"autoCreateTime;not null"`
-	ValidTo        *time.Time
-	Name           string `gorm:"not null"`
-	Args           string `gorm:"not null"`
-	Docs           string `gorm:"not null"`
-	KwType         string `gorm:"not null"`
-	Implementation string
+    KeywordProps
 }
 
 type User struct {

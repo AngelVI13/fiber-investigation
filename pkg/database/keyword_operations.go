@@ -12,14 +12,23 @@ import (
 func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kwType string) error {
 	// first check that there is no kw with this name. this looks like not optimal solution
 	var keyword Keyword
+
 	kw := db.Where("name = ? AND valid_to IS NOT NULL", name).First(&keyword)
 	// kw with given name exists
 	if kw.Error == nil {
 		return errors.New("Keyword already exist!")
 	}
-	keyword_record := Keyword{Name: name, Args: args, Docs: docs, KwType: kwType}
+	keyword_record := Keyword{
+		KeywordProps: KeywordProps{
+			Name:   name,
+			Args:   args,
+			Docs:   docs,
+			KwType: kw_type,
+		},
+	}
 	change := fmt.Sprintf("Add %s keyword '%s'", kwType, name)
 	history_record := History{Change: change}
+
 	db.Create(&keyword_record)
 	db.Create(&history_record)
 
@@ -29,18 +38,30 @@ func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kwType
 //UpdateKeyword update given keyword record in database.
 func UpdateKeyword(db *gorm.DB, id int, name string, args string, docs string) error {
 	var keyword Keyword
+
 	result := db.First(&keyword, id)
 	if result.Error != nil {
 		return errors.New(fmt.Sprintf("Failed to get Keyword with given ID: %d", id))
 	}
+
 	now := time.Now()
 	keyword.ValidTo = &now
+
 	db.Save(&keyword)
 
-	keyword_record := Keyword{Name: name, Args: args, Docs: docs, KwType: keyword.KwType}
+	keyword_record := Keyword{
+		KeywordProps: KeywordProps{
+			Name:   name,
+			Args:   args,
+			Docs:   docs,
+			KwType: keyword.KwType,
+		},
+	}
 	keyword_record.CreatedAt = keyword.CreatedAt
+
 	change := fmt.Sprintf("Update %s keyword '%s'", keyword.KwType, keyword.Name)
 	history_record := History{Change: change}
+
 	db.Create(&history_record)
 	db.Create(&keyword_record)
 
@@ -50,6 +71,7 @@ func UpdateKeyword(db *gorm.DB, id int, name string, args string, docs string) e
 //DeleteKeyword delete keyword record by id in database.
 func DeleteKeyword(db *gorm.DB, id int) error {
 	var keyword Keyword
+
 	result := db.First(&keyword, id)
 	if result.Error != nil {
 		return errors.New(fmt.Sprintf("Failed to get Keyword with given ID: %d", id))
@@ -96,10 +118,10 @@ func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keywor
 	// It might be the case that no kwds are found. so no error checking is done
 	_ = db.Where(
 		`(
-			(valid_to IS NULL AND valid_from <= ?) 
-			OR 
+			(valid_to IS NULL AND valid_from <= ?)
+			OR
 			(valid_to IS NOT NULL AND valid_from <= ? AND valid_to >= ?)
-		) 
+		)
 		AND kw_type = ?`,
 		selectedVersion.CreatedAt,
 		selectedVersion.CreatedAt,
