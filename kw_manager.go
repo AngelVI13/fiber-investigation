@@ -29,6 +29,8 @@ func main() {
 		Views: engine,
 	})
 
+	app.Static("/css", "./views/static/css")
+
 	router := routes.NewRouter(db)
 	app.Get(routes.UrlMap["IndexUrl"], router.HandleIndex)
 	app.Get(routes.UrlMap["BusinessKwdsUrl"], router.HandleBusinessKeywords)
