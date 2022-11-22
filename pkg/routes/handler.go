@@ -183,14 +183,14 @@ func (r Router) HandleKeywordVersion(c *fiber.Ctx) error {
 }
 
 func (r *Router) HandleCreateKeywordGet(c *fiber.Ctx) error {
-	kw_type := c.Params("kw_type")
+	kwType := c.Params("kw_type")
 	return r.renderMainLayout(c, "views/create", fiber.Map{
-		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
+		"Title": fmt.Sprintf("Add New %s Keyword", kwType),
 	})
 }
 
 func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
-	kw_type := c.Params("kw_type")
+	kwType := c.Params("kw_type")
 
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
@@ -220,7 +220,7 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 		nameValue,
 		argsValue,
 		docsValue,
-		kw_type,
+		kwType,
 	)
 	if err != nil {
 		addMessage(fmt.Sprintf("Failed to create new Keyword '%s'!", c.FormValue("name")), LevelDanger)
@@ -229,7 +229,7 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 	}
 	// add message that kw was successfully added
 	return r.renderMainLayout(c, "views/create", fiber.Map{
-		"Title": fmt.Sprintf("Add New %s Keyword", kw_type),
+		"Title": fmt.Sprintf("Add New %s Keyword", kwType),
 	})
 }
 

@@ -23,7 +23,7 @@ func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kwType
 			Name:   name,
 			Args:   args,
 			Docs:   docs,
-			KwType: kw_type,
+			KwType: kwType,
 		},
 	}
 	change := fmt.Sprintf("Add %s keyword '%s'", kwType, name)
@@ -94,9 +94,15 @@ func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keywor
 	if err != nil {
 		return nil, err
 	}
-
+	var typeFilter []string
+	if kwType == "all" {
+		typeFilter = append(typeFilter, "business")
+		typeFilter = append(typeFilter, "technical")
+	} else{
+		typeFilter = append(typeFilter, kwType)
+	}
 	if latestVersion.ID == uint(version) {
-		result := db.Where("kw_type = ? and valid_to IS NULL", kwType).Find(&keywords)
+		result := db.Where("kw_type IN ? and valid_to IS NULL", typeFilter).Find(&keywords)
 		if result.Error != nil {
 			return nil, errors.New(fmt.Sprintf("Failed to get '%s' keywords for version: %d", kwType, version))
 		}
@@ -122,11 +128,11 @@ func GetAllKeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keywor
 			OR
 			(valid_to IS NOT NULL AND valid_from <= ? AND valid_to >= ?)
 		)
-		AND kw_type = ?`,
+		AND kw_type IN ?`,
 		selectedVersion.CreatedAt,
 		selectedVersion.CreatedAt,
 		nextVersion.CreatedAt,
-		kwType,
+		typeFilter,
 	).Find(&keywords)
 
 	return keywords, nil
