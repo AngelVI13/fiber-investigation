@@ -1,0 +1,25 @@
+<label>Version:</label>
+
+<select class="form-select form-select-sm" name="revision" 
+    onchange="this.options[this.selectedIndex].value && (window.location = `/{{.KwType}}/version/${this.options[this.selectedIndex].value}`);" 
+    style="width:auto;">
+    {{ range .Versions }}
+        {{ if eq .ID $.LatestVersion }}
+
+            {{ if eq $.SelectedVersion .ID}}
+                <option value="{{ .ID }}" selected>{{.ID}} Latest </option>
+            {{ else }}
+                <option value="{{ .ID }}">{{.ID}} Latest </option>
+            {{end}}
+
+        {{ else }}
+
+            {{ if eq $.SelectedVersion .ID }}
+                <option value="{{ .ID }}" selected>{{.ID}} {{.CreatedAt}} </option>
+            {{ else }}
+                <option value="{{ .ID }}"> {{.ID}} {{.CreatedAt}} </option>
+            {{ end }}
+            
+        {{ end }}
+    {{ end }}
+</select>

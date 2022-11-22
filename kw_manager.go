@@ -29,6 +29,8 @@ func main() {
 		Views: engine,
 	})
 
+	app.Static("/css", "./views/static/css")
+
 	router := routes.NewRouter(db)
 	app.Get(routes.UrlMap["IndexUrl"], router.HandleIndex)
 	app.Get(routes.UrlMap["BusinessKwdsUrl"], router.HandleBusinessKeywords)
@@ -53,6 +55,8 @@ func main() {
 	app.Post(routes.UrlMap["ExportStubsUrl"], router.HandleExportStubsPost)
 
 	app.Get(routes.UrlMap["ChangelogUrl"], router.HandleChangelog)
+
+	app.Get("/:kwType/version/:id", router.HandleKeywordVersion)
 
 	log.Fatal(app.Listen(":3000"))
 }
