@@ -37,8 +37,14 @@ func FuzzGetKwdsForVersion(f *testing.F) {
 	f.Add(4, 1, "technical")
 	f.Add(1, 0, "technical")
 
+	f.Add(6, 6, "all")
+	f.Add(3, 3, "all")
+	f.Add(1, 1, "all")
+	f.Add(0, 0, "all")
+
+
 	f.Fuzz(func(t *testing.T, version int, count int, kwType string) {
-		keywordsForVersion, _ := GetAllKeywordsForVersion(testDb, version, kwType)
+		keywordsForVersion, _ := KeywordsForVersion(testDb, version, kwType)
 
 		if len(keywordsForVersion) != count {
 			t.Errorf(
@@ -46,26 +52,6 @@ func FuzzGetKwdsForVersion(f *testing.F) {
 				count,
 				len(keywordsForVersion),
 			)
-		}
-		var found bool
-		var expId int
-		// for each count of keywords make sure ids are correct.
-		// business ids 1->3, technical 4->6
-		for idx := 1; idx <= count; idx++ {
-			found = false
-			for _, kwd := range keywordsForVersion {
-				expId = idx
-				if kwd.KwType == "technical" {
-					expId = expId + 3
-				}
-				if int(kwd.ID) == expId {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Errorf("Failed to found keyword with id: %v", keywordsForVersion)
-			}
 		}
 	})
 

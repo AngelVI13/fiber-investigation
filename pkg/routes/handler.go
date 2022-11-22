@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"html/template"
+
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
-	"html/template"
 )
 
 var UrlMap = map[string]string{
@@ -75,16 +76,12 @@ func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no business keywords to display", LevelPrimary)
 	}
-	allVersions, err := database.GetVersions(r.db)
+	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
+		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
 		return r.HandleIndex(c)
 	}
-	latestVersion, err := database.GetLatestVersion(r.db)
-	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
-	}
+
 	return r.renderMainLayout(c, "views/keywords", fiber.Map{
 		"Title":           "Business Keywords",
 		"Keywords":        keywords,
@@ -101,14 +98,9 @@ func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no business keywords to display", LevelPrimary)
 	}
-	allVersions, err := database.GetVersions(r.db)
+	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
-	}
-	latestVersion, err := database.GetLatestVersion(r.db)
-	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
+		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
 		return r.HandleIndex(c)
 	}
 
@@ -128,14 +120,10 @@ func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
 	if result.Error != nil {
 		addMessage("There is no keywords to display", LevelPrimary)
 	}
-	allVersions, err := database.GetVersions(r.db)
+
+	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
-	}
-	latestVersion, err := database.GetLatestVersion(r.db)
-	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
+		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
 		return r.HandleIndex(c)
 	}
 	return r.renderMainLayout(c, "views/keywords", fiber.Map{
@@ -156,19 +144,14 @@ func (r Router) HandleKeywordVersion(c *fiber.Ctx) error {
 	}
 	kwType := c.Params("kwType")
 
-	kwds, err := database.GetAllKeywordsForVersion(r.db, versionId, kwType)
+	kwds, err := database.KeywordsForVersion(r.db, versionId, kwType)
 	if err != nil {
 		addMessage(fmt.Sprintf("Failed to fetch keywords information for version: %d", versionId), LevelDanger)
 		return r.HandleIndex(c)
 	}
-	allVersions, err := database.GetVersions(r.db)
+	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get all Versions from db. error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
-	}
-	latestVersion, err := database.GetLatestVersion(r.db)
-	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get latest Version from db. Error: %v", err), LevelDanger)
+		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
 		return r.HandleIndex(c)
 	}
 
@@ -310,4 +293,17 @@ func (r *Router) HandleChangelog(c *fiber.Ctx) error {
 		"Title":   "Changelog",
 		"History": history,
 	})
+}
+
+func getLatestAndAllVersions(db *gorm.DB) (database.History, []database.History, error) {
+	allVersions, err := database.AllVersions(db)
+
+	if err != nil {
+		return database.History{}, nil, fmt.Errorf("failed to get all Versions from db. error: %v", err)
+	}
+	latestVersion, err := database.LatestVersion(db)
+	if err != nil {
+		return database.History{}, nil, fmt.Errorf("failed to get latest Version from db. error: %v", err)
+	}
+	return latestVersion, allVersions, nil
 }
