@@ -53,5 +53,7 @@ func main() {
 
 	app.Get(routes.UrlMap["ChangelogUrl"], router.HandleChangelog)
 
+	app.Get("/:kwType/version/:id", router.HandleKeywordVersion)
+
 	log.Fatal(app.Listen(":3000"))
 }
