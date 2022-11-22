@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -16,9 +17,13 @@ type KeywordProps struct {
 	Implementation string     `csv:"Implementation"`
 }
 
+func (k KeywordProps) String() string {
+	return fmt.Sprintf("%s", k.Name)
+}
+
 type Keyword struct {
 	gorm.Model
-    KeywordProps
+	KeywordProps
 }
 
 type User struct {
