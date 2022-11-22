@@ -60,15 +60,15 @@ func generateCsvFile(filename string, keywords []database.Keyword) (string, erro
 }
 
 func generateCsv(keywords []database.Keyword) (string, error) {
-    var keywordsCsv []*database.KeywordProps
+	var keywordsCsv []*database.KeywordProps
 
-    // NOTE: need to use index in order to take a pointer of correct element
-    for i := range keywords {
-        keywordsCsv = append(keywordsCsv, &keywords[i].KeywordProps)
-    }
+	// NOTE: need to use index in order to take a pointer of correct element
+	for i := range keywords {
+		keywordsCsv = append(keywordsCsv, &keywords[i].KeywordProps)
+	}
 
-    // TODO: What to do with the separator character? 
-    // Can't use comma cause this might be used in the docs or args or impl
+	// TODO: What to do with the separator character?
+	// Can't use comma cause this might be used in the docs or args or impl
 	gocsv.SetCSVWriter(func(out io.Writer) *gocsv.SafeCSVWriter {
 		writer := csv.NewWriter(out)
 		writer.Comma = '|'
@@ -81,4 +81,3 @@ func generateCsv(keywords []database.Keyword) (string, error) {
 	}
 	return csvContents, nil
 }
-

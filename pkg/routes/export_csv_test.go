@@ -11,7 +11,7 @@ import (
 
 func TestGenerateCsvFile(t *testing.T) {
 	now := time.Now()
-    keyword := database.Keyword{
+	keyword := database.Keyword{
 		KeywordProps: database.KeywordProps{
 			ValidFrom:      now,
 			ValidTo:        nil,
@@ -39,7 +39,7 @@ func TestGenerateCsvFile(t *testing.T) {
 
 func TestGenerateCsv(t *testing.T) {
 	now := time.Now()
-    keyword := database.Keyword{
+	keyword := database.Keyword{
 		KeywordProps: database.KeywordProps{
 			ValidFrom:      now,
 			ValidTo:        nil,
@@ -51,7 +51,7 @@ func TestGenerateCsv(t *testing.T) {
 		},
 	}
 
-    expCsv := `Name|Args|Docs|Type|Implementation
+	expCsv := `Name|Args|Docs|Type|Implementation
 My keyword name|arg1='a', arg2='b'|Very important docstring||
 `
 
