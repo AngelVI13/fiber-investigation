@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gocarina/gocsv"
@@ -31,9 +30,13 @@ func (r *Router) HandleImportCsvPost(c *fiber.Ctx) error {
 		return r.HandleImportCsvGet(c)
 	}
 
-	err = insertKeywordsToDb(keywords)
-	if err != nil {
-		addMessage(err.Error(), LevelDanger)
+	errors := insertKeywordsToDb(r, keywords)
+	if errors != nil {
+		msg := "During import the following errors were raised:"
+		for _, e := range errors {
+			msg += fmt.Sprintf("\n\t* %s", e.Error())
+		}
+		addMessage(msg, LevelWarning)
 		return r.HandleImportCsvGet(c)
 	}
 
@@ -59,8 +62,41 @@ func keywordsFromCsv(csvText string) ([]*database.KeywordProps, error) {
 	return keywords, nil
 }
 
-func insertKeywordsToDb(keywords []*database.KeywordProps) error {
-	return nil
+func insertKeywordsToDb(
+	r *Router,
+	keywordsToInsert []*database.KeywordProps,
+) []error {
+	var (
+		allKeywords []database.Keyword
+		errors      []error
+	)
+
+	_ = r.db.Where("valid_to IS NULL").Find(&allKeywords)
+
+	var keywordMap = map[string]*database.Keyword{}
+	for i := range allKeywords {
+		kw := allKeywords[i]
+		keywordMap[kw.Name] = &kw
+	}
+
+	for _, kw := range keywordsToInsert {
+		existingKeyword, found := keywordMap[kw.Name]
+
+		if !found {
+			err := database.InsertNewKeyword(r.db, kw.Name, kw.Args, kw.Docs, kw.KwType)
+			if err != nil {
+				errors = append(errors, fmt.Errorf("error inserting %s: %v", kw.Name, err))
+			}
+			continue
+		}
+
+		err := database.UpdateKeyword(r.db, int(existingKeyword.ID), kw.Name, kw.Args, kw.Docs)
+		if err != nil {
+			errors = append(errors, fmt.Errorf("error updating %s: %v", kw.Name, err))
+		}
+	}
+
+	return errors
 }
 
 func csvFileContents(c *fiber.Ctx) (string, error) {
