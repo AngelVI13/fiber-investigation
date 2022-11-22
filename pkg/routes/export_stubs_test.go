@@ -208,11 +208,11 @@ func checkGenerateStubs(
 ) {
 	generatedStub, err := generateStubs(stubGenerator, []database.Keyword{keyword})
 	if err != nil {
-		t.Errorf("error while generating stubs: %v", err)
+		t.Fatalf("error while generating stubs: %v", err)
 	}
 
 	if generatedStub != expStub {
-		t.Errorf(
+		t.Fatalf(
 			"mismatch between expected and generated stub:\nexpected:\n%s\nactual:\n%s",
 			strconv.Quote(expStub),
 			strconv.Quote(generatedStub),
@@ -227,15 +227,15 @@ func checkGenerateStubsFile(
 ) {
 	filename, err := generateStubsFile(stubGenerator, keywords)
 	if err != nil {
-		t.Errorf("error while generating stubs file: %v", err)
+		t.Fatalf("error while generating stubs file: %v", err)
 	}
 
 	if filename == "" {
-		t.Errorf("no filename provided")
+		t.Fatalf("no filename provided")
 	}
 
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		t.Errorf("generated stubs file doesn't exist: %v", err)
+		t.Fatalf("generated stubs file doesn't exist: %v", err)
 	}
 }
 
@@ -244,7 +244,7 @@ func compareDocs(exp, act string, t *testing.T) {
 	cleanParts := strings.SplitAfter(act, "\n")
 
 	if len(expParts) != len(cleanParts) {
-		t.Errorf(
+		t.Fatalf(
 			"wrong number of py docs lines: expected %d but got %d",
 			len(expParts),
 			len(cleanParts),
@@ -256,7 +256,7 @@ func compareDocs(exp, act string, t *testing.T) {
 		cleanLine := cleanParts[i]
 
 		if expLine != cleanLine {
-			t.Errorf("wrong format of py docs (line %d): \nexpected: \n%s\ngot:\n%s",
+			t.Fatalf("wrong format of py docs (line %d): \nexpected: \n%s\ngot:\n%s",
 				i,
 				strconv.Quote(expLine),
 				strconv.Quote(cleanLine),

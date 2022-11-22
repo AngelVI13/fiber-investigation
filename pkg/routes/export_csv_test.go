@@ -25,15 +25,15 @@ func TestGenerateCsvFile(t *testing.T) {
 
 	filename, err := generateCsvFile("test_keywords.csv", []database.Keyword{keyword})
 	if err != nil {
-		t.Errorf("error while generating csv file: %v", err)
+		t.Fatalf("error while generating csv file: %v", err)
 	}
 
 	if filename == "" {
-		t.Errorf("no filename provided")
+		t.Fatalf("no filename provided")
 	}
 
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		t.Errorf("generated csv file doesn't exist: %v", err)
+		t.Fatalf("generated csv file doesn't exist: %v", err)
 	}
 }
 
@@ -57,11 +57,11 @@ My keyword name|arg1='a', arg2='b'|Very important docstring||
 
 	generatedCsv, err := generateCsv([]database.Keyword{keyword})
 	if err != nil {
-		t.Errorf("error while generating csv: %v", err)
+		t.Fatalf("error while generating csv: %v", err)
 	}
 
 	if generatedCsv != expCsv {
-		t.Errorf(
+		t.Fatalf(
 			"mismatch between expected and generated csv:\nexpected:\n%s\nactual:\n%s",
 			strconv.Quote(expCsv),
 			strconv.Quote(generatedCsv),
