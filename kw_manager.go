@@ -26,7 +26,8 @@ func main() {
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
-		Views: engine,
+		Views:       engine,
+		ViewsLayout: "views/layouts/main",
 	})
 
 	app.Static("/css", "./views/static/css")

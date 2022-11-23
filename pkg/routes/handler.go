@@ -42,14 +42,12 @@ var UrlMap = map[string]string{
 }
 
 type Router struct {
-	db         *gorm.DB
-	mainLayout string
+	db *gorm.DB
 }
 
 func NewRouter(db *gorm.DB) *Router {
 	return &Router{
-		db:         db,
-		mainLayout: "views/layouts/main",
+		db: db,
 	}
 }
 
@@ -75,7 +73,7 @@ func (r *Router) HandleIndex(c *Ctx) error {
 	data := flash.Get(c.Ctx)
 	data["Title"] = "Keyword storage"
 
-	return c.WithUrls().Render("views/index", data, r.mainLayout)
+	return c.WithUrls().Render("views/index", data)
 }
 
 func (r *Router) HandleBusinessKeywords(c *Ctx) error {
@@ -88,7 +86,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	if result.Error != nil {
 		return c.WithUrls().WithInfo(
 			"There are no business keywords to display",
-		).Render("views/keywords", data, r.mainLayout)
+		).Render("views/keywords", data)
 	}
 
 	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
@@ -104,7 +102,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render("views/keywords", data, r.mainLayout)
+	return c.WithUrls().Render("views/keywords", data)
 }
 
 func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
@@ -117,7 +115,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 	if result.Error != nil {
 		return c.WithUrls().WithInfo(
 			"There are no technical keywords to display",
-		).Render("views/keywords", data, r.mainLayout)
+		).Render("views/keywords", data)
 	}
 
 	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
@@ -133,7 +131,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render("views/keywords", data, r.mainLayout)
+	return c.WithUrls().Render("views/keywords", data)
 }
 
 func (r *Router) HandleAllKeywords(c *Ctx) error {
@@ -148,7 +146,7 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 		// wanna go back to select older version where possibly there are keywords
 		return c.WithUrls().WithInfo(
 			"There are no keywords to display",
-		).Render("views/keywords", data, r.mainLayout)
+		).Render("views/keywords", data)
 	}
 
 	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
@@ -164,7 +162,7 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render("views/keywords", data, r.mainLayout)
+	return c.WithUrls().Render("views/keywords", data)
 }
 
 func (r Router) HandleKeywordVersion(c *Ctx) error {
@@ -199,7 +197,7 @@ func (r Router) HandleKeywordVersion(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = versionId
 
-	return c.WithUrls().Render("views/keywords", data, r.mainLayout)
+	return c.WithUrls().Render("views/keywords", data)
 }
 
 func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
@@ -208,7 +206,7 @@ func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
 	kwType := c.Params("kw_type")
 	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
 
-	return c.WithUrls().Render("views/create", data, r.mainLayout)
+	return c.WithUrls().Render("views/create", data)
 }
 
 func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
@@ -279,7 +277,7 @@ func (r *Router) HandleEditKeywordGet(c *Ctx) error {
 	data["Args"] = keyword.Args
 	data["Docs"] = keyword.Docs
 
-	return c.WithUrls().Render("views/edit", data, r.mainLayout)
+	return c.WithUrls().Render("views/edit", data)
 }
 
 func (r *Router) HandleEditKeywordPost(c *Ctx) error {
@@ -347,22 +345,28 @@ func (r *Router) HandleChangelog(c *Ctx) error {
 	if result.Error != nil {
 		return c.WithUrls().WithInfo(
 			"There is no versions to display",
-		).Render("views/changelog", data, r.mainLayout)
+		).Render("views/changelog", data)
 	}
 
 	data["History"] = history
-	return c.WithUrls().Render("views/changelog", data, r.mainLayout)
+	return c.WithUrls().Render("views/changelog", data)
 }
 
 func getLatestAndAllVersions(db *gorm.DB) (database.History, []database.History, error) {
 	allVersions, err := database.AllVersions(db)
 
 	if err != nil {
-		return database.History{}, nil, fmt.Errorf("failed to get all Versions from db. error: %v", err)
+		return database.History{}, nil, fmt.Errorf(
+			"failed to get all Versions from db. error: %v",
+			err,
+		)
 	}
 	latestVersion, err := database.LatestVersion(db)
 	if err != nil {
-		return database.History{}, nil, fmt.Errorf("failed to get latest Version from db. error: %v", err)
+		return database.History{}, nil, fmt.Errorf(
+			"failed to get latest Version from db. error: %v",
+			err,
+		)
 	}
 	return latestVersion, allVersions, nil
 }
