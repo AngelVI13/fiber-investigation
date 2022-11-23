@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
-	"github.com/gofiber/fiber/v2"
+	"github.com/sujit-baniya/flash"
 )
 
 const (
@@ -18,15 +18,17 @@ const (
 	RfStub     = "rf"
 )
 
-func (r *Router) HandleExportStubsGet(c *fiber.Ctx) error {
-	return r.renderMainLayout(c, "views/export_stubs", fiber.Map{
-		"Title":      "Download Keywords stubs:",
-		"PythonStub": PythonStub,
-		"RfStub":     RfStub,
-	})
+func (r *Router) HandleExportStubsGet(c *Ctx) error {
+	data := flash.Get(c.Ctx)
+
+	data["Title"] = "Download Keywords stubs:"
+	data["PythonStub"] = PythonStub
+	data["RfStub"] = RfStub
+
+	return c.WithUrls().Render("views/export_stubs", data, r.mainLayout)
 }
 
-func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
+func (r *Router) HandleExportStubsPost(c *Ctx) error {
 	stubType := c.FormValue("stub_type")
 
 	// TODO: abstract away database layer to something like r.db.Keywords()
@@ -34,31 +36,25 @@ func (r *Router) HandleExportStubsPost(c *fiber.Ctx) error {
 
 	result := r.db.Where("valid_to IS NULL").Find(&keywords)
 	if result.Error != nil {
-		addMessage("There are no keywords", LevelPrimary)
-		// this will reload page and show message
-		return r.HandleExportStubsGet(c)
+		return c.WithInfo("There are no keywords").Redirect(ExportStubsUrl)
 	}
 
 	var stubGenerator StubGenerator
 	if stubType == RfStub {
 		stubGenerator = &RfStubGenerator{}
 	} else if stubType == PythonStub {
-        stubGenerator = &PyStubGenerator{}
-    } else {
-        addMessage(
-            fmt.Sprintf("Unsupported stub type %s", strconv.Quote(stubType)), 
-            LevelDanger,
-        )
-        return r.HandleExportStubsGet(c)
-    }
+		stubGenerator = &PyStubGenerator{}
+	} else {
+		return c.WithError(fmt.Sprintf(
+			"Unsupported stub type %s", strconv.Quote(stubType),
+		)).Redirect(ExportStubsUrl)
+	}
 
 	filename, err := generateStubsFile(stubGenerator, keywords)
 	if err != nil {
-		addMessage(
-			fmt.Sprintf("Error while generating stubs file: %v", err),
-			LevelDanger,
-		)
-		return r.HandleExportStubsGet(c)
+		return c.WithError(fmt.Sprintf(
+			"Error while generating stubs file: %v", err),
+		).Redirect(ExportStubsUrl)
 	}
 
 	c.Attachment(filepath.Base(filename))
@@ -102,10 +98,10 @@ func (g *PyStubGenerator) RawName(keyword string) string {
 func (g *PyStubGenerator) Name(keyword string) string {
 	fields := strings.Fields(keyword)
 
-    var newFields []string
-    for _, f := range fields {
-        newFields = append(newFields, strings.ToLower(f))
-    }
+	var newFields []string
+	for _, f := range fields {
+		newFields = append(newFields, strings.ToLower(f))
+	}
 
 	return strings.Join(newFields, "_")
 }
@@ -134,12 +130,11 @@ func (g *PyStubGenerator) Docs(docs string) string {
 func (g *PyStubGenerator) TemplateProps(keyword database.Keyword) map[string]any {
 	return map[string]any{
 		"RawName": g.RawName(keyword.Name),
-		"Name": g.Name(keyword.Name),
-		"Docs": g.Docs(keyword.Docs),
-		"Args": keyword.Args,
+		"Name":    g.Name(keyword.Name),
+		"Docs":    g.Docs(keyword.Docs),
+		"Args":    keyword.Args,
 	}
 }
-
 
 type RfStubGenerator struct{}
 

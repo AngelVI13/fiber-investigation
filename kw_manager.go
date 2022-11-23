@@ -32,31 +32,65 @@ func main() {
 	app.Static("/css", "./views/static/css")
 
 	router := routes.NewRouter(db)
-	app.Get(routes.UrlMap["IndexUrl"], router.HandleIndex)
-	app.Get(routes.UrlMap["BusinessKwdsUrl"], router.HandleBusinessKeywords)
-	app.Get(routes.UrlMap["TechnicalKwdsUrl"], router.HandleTechnicalKeywords)
-	app.Get(routes.UrlMap["AllKwdsUrl"], router.HandleAllKeywords)
+	app.Get(routes.IndexUrl, func(c *fiber.Ctx) error {
+		return router.HandleIndex(&routes.Ctx{c})
+	})
+	app.Get(routes.BusinessKwdsUrl, func(c *fiber.Ctx) error {
+		return router.HandleBusinessKeywords(&routes.Ctx{c})
+	})
+	app.Get(routes.TechnicalKwdsUrl, func(c *fiber.Ctx) error {
+		return router.HandleTechnicalKeywords(&routes.Ctx{c})
+	})
+	app.Get(routes.AllKwdsUrl, func(c *fiber.Ctx) error {
+		return router.HandleAllKeywords(&routes.Ctx{c})
+	})
 
-	app.Get(fmt.Sprintf("%s/:kw_type", routes.UrlMap["CreateKwdUrl"]), router.HandleCreateKeywordGet)
-	app.Post(fmt.Sprintf("%s/:kw_type", routes.UrlMap["CreateKwdUrl"]), router.HandleCreateKeywordPost)
+	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), func(c *fiber.Ctx) error {
+		return router.HandleCreateKeywordGet(&routes.Ctx{c})
+	})
+	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), func(c *fiber.Ctx) error {
+		return router.HandleCreateKeywordPost(&routes.Ctx{c})
+	})
 
-	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["EditKwdUrl"]), router.HandleEditKeywordGet)
-	app.Post(fmt.Sprintf("%s/:id", routes.UrlMap["EditKwdUrl"]), router.HandleEditKeywordPost)
+	app.Get(fmt.Sprintf("%s/:id", routes.EditKwdUrl), func(c *fiber.Ctx) error {
+		return router.HandleEditKeywordGet(&routes.Ctx{c})
+	})
+	app.Post(fmt.Sprintf("%s/:id", routes.EditKwdUrl), func(c *fiber.Ctx) error {
+		return router.HandleEditKeywordPost(&routes.Ctx{c})
+	})
 
-	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["DeleteKwdUrl"]), router.HandleDeleteKeyword)
+	app.Get(fmt.Sprintf("%s/:id", routes.DeleteKwdUrl), func(c *fiber.Ctx) error {
+		return router.HandleDeleteKeyword(&routes.Ctx{c})
+	})
 
-	app.Get(routes.UrlMap["ImportCsvUrl"], router.HandleImportCsvGet)
-	app.Post(routes.UrlMap["ImportCsvUrl"], router.HandleImportCsvPost)
+	app.Get(routes.ImportCsvUrl, func(c *fiber.Ctx) error {
+		return router.HandleImportCsvGet(&routes.Ctx{c})
+	})
+	app.Post(routes.ImportCsvUrl, func(c *fiber.Ctx) error {
+		return router.HandleImportCsvPost(&routes.Ctx{c})
+	})
 
-	app.Get(routes.UrlMap["ExportCsvUrl"], router.HandleExportCsvGet)
-	app.Post(routes.UrlMap["ExportCsvUrl"], router.HandleExportCsvPost)
+	app.Get(routes.ExportCsvUrl, func(c *fiber.Ctx) error {
+		return router.HandleExportCsvGet(&routes.Ctx{c})
+	})
+	app.Post(routes.ExportCsvUrl, func(c *fiber.Ctx) error {
+		return router.HandleExportCsvPost(&routes.Ctx{c})
+	})
 
-	app.Get(routes.UrlMap["ExportStubsUrl"], router.HandleExportStubsGet)
-	app.Post(routes.UrlMap["ExportStubsUrl"], router.HandleExportStubsPost)
+	app.Get(routes.ExportStubsUrl, func(c *fiber.Ctx) error {
+		return router.HandleExportStubsGet(&routes.Ctx{c})
+	})
+	app.Post(routes.ExportStubsUrl, func(c *fiber.Ctx) error {
+		return router.HandleExportStubsPost(&routes.Ctx{c})
+	})
 
-	app.Get(routes.UrlMap["ChangelogUrl"], router.HandleChangelog)
+	app.Get(routes.ChangelogUrl, func(c *fiber.Ctx) error {
+		return router.HandleChangelog(&routes.Ctx{c})
+	})
 
-	app.Get("/:kwType/version/:id", router.HandleKeywordVersion)
+	app.Get("/:kwType/version/:id", func(c *fiber.Ctx) error {
+		return router.HandleKeywordVersion(&routes.Ctx{c})
+	})
 
 	log.Fatal(app.Listen(":3000"))
 }

@@ -18,7 +18,7 @@
     <div class="row flex-nowrap w-75">
       {{template "views/partials/nav" .}}
       <div class="content">
-        {{range .Messages}}
+        {{if .Message}}
           {{template "views/partials/message" .}}
         {{end}}
         {{embed}}
