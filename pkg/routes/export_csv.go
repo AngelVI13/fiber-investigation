@@ -9,11 +9,10 @@ import (
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gocarina/gocsv"
-	"github.com/sujit-baniya/flash"
 )
 
 func (r *Router) HandleExportCsvGet(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 	data["Title"] = "Export keywords as CSV"
 	data["ExportBtnTxt"] = "Download"
 

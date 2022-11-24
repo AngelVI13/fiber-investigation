@@ -10,7 +10,6 @@ import (
 	"text/template"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
-	"github.com/sujit-baniya/flash"
 )
 
 const (
@@ -19,7 +18,7 @@ const (
 )
 
 func (r *Router) HandleExportStubsGet(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 
 	data["Title"] = "Download Keywords stubs:"
 	data["PythonStub"] = PythonStub

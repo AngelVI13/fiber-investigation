@@ -14,6 +14,10 @@ const (
 	LevelDanger  MessageLevel = "danger"
 )
 
+func (c *Ctx) FlashData() fiber.Map {
+	return flash.Get(c.Ctx)
+}
+
 func (c *Ctx) WithInfo(message string) *fiber.Ctx {
 	data := fiber.Map{
 		"Message": message,

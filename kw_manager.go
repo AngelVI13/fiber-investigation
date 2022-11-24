@@ -15,6 +15,16 @@ import (
 //go:embed views/*
 var viewsfs embed.FS
 
+// Handler Wrapper to convert handler args to expected args by fiber
+func Handler(f func(c *routes.Ctx) error) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		ctx := &routes.Ctx{
+			Ctx: c,
+		}
+		return f(ctx)
+	}
+}
+
 func main() {
 	db_path := "test.db"
 	db, err := database.Create(db_path)
@@ -33,65 +43,32 @@ func main() {
 	app.Static("/css", "./views/static/css")
 
 	router := routes.NewRouter(db)
-	app.Get(routes.IndexUrl, func(c *fiber.Ctx) error {
-		return router.HandleIndex(&routes.Ctx{c})
-	})
-	app.Get(routes.BusinessKwdsUrl, func(c *fiber.Ctx) error {
-		return router.HandleBusinessKeywords(&routes.Ctx{c})
-	})
-	app.Get(routes.TechnicalKwdsUrl, func(c *fiber.Ctx) error {
-		return router.HandleTechnicalKeywords(&routes.Ctx{c})
-	})
-	app.Get(routes.AllKwdsUrl, func(c *fiber.Ctx) error {
-		return router.HandleAllKeywords(&routes.Ctx{c})
-	})
+	app.Get(routes.IndexUrl, Handler(router.HandleIndex))
 
-	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), func(c *fiber.Ctx) error {
-		return router.HandleCreateKeywordGet(&routes.Ctx{c})
-	})
-	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), func(c *fiber.Ctx) error {
-		return router.HandleCreateKeywordPost(&routes.Ctx{c})
-	})
+	app.Get(routes.BusinessKwdsUrl, Handler(router.HandleBusinessKeywords))
+	app.Get(routes.TechnicalKwdsUrl, Handler(router.HandleTechnicalKeywords))
+	app.Get(routes.AllKwdsUrl, Handler(router.HandleAllKeywords))
 
-	app.Get(fmt.Sprintf("%s/:id", routes.EditKwdUrl), func(c *fiber.Ctx) error {
-		return router.HandleEditKeywordGet(&routes.Ctx{c})
-	})
-	app.Post(fmt.Sprintf("%s/:id", routes.EditKwdUrl), func(c *fiber.Ctx) error {
-		return router.HandleEditKeywordPost(&routes.Ctx{c})
-	})
+	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordGet))
+	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id", routes.DeleteKwdUrl), func(c *fiber.Ctx) error {
-		return router.HandleDeleteKeyword(&routes.Ctx{c})
-	})
+	app.Get(fmt.Sprintf("%s/:id", routes.EditKwdUrl), Handler(router.HandleEditKeywordGet))
+	app.Post(fmt.Sprintf("%s/:id", routes.EditKwdUrl), Handler(router.HandleEditKeywordPost))
 
-	app.Get(routes.ImportCsvUrl, func(c *fiber.Ctx) error {
-		return router.HandleImportCsvGet(&routes.Ctx{c})
-	})
-	app.Post(routes.ImportCsvUrl, func(c *fiber.Ctx) error {
-		return router.HandleImportCsvPost(&routes.Ctx{c})
-	})
+	app.Get(fmt.Sprintf("%s/:id", routes.DeleteKwdUrl), Handler(router.HandleDeleteKeyword))
 
-	app.Get(routes.ExportCsvUrl, func(c *fiber.Ctx) error {
-		return router.HandleExportCsvGet(&routes.Ctx{c})
-	})
-	app.Post(routes.ExportCsvUrl, func(c *fiber.Ctx) error {
-		return router.HandleExportCsvPost(&routes.Ctx{c})
-	})
+	app.Get(routes.ImportCsvUrl, Handler(router.HandleImportCsvGet))
+	app.Post(routes.ImportCsvUrl, Handler(router.HandleImportCsvPost))
 
-	app.Get(routes.ExportStubsUrl, func(c *fiber.Ctx) error {
-		return router.HandleExportStubsGet(&routes.Ctx{c})
-	})
-	app.Post(routes.ExportStubsUrl, func(c *fiber.Ctx) error {
-		return router.HandleExportStubsPost(&routes.Ctx{c})
-	})
+	app.Get(routes.ExportCsvUrl, Handler(router.HandleExportCsvGet))
+	app.Post(routes.ExportCsvUrl, Handler(router.HandleExportCsvPost))
 
-	app.Get(routes.ChangelogUrl, func(c *fiber.Ctx) error {
-		return router.HandleChangelog(&routes.Ctx{c})
-	})
+	app.Get(routes.ExportStubsUrl, Handler(router.HandleExportStubsGet))
+	app.Post(routes.ExportStubsUrl, Handler(router.HandleExportStubsPost))
 
-	app.Get("/:kwType/version/:id", func(c *fiber.Ctx) error {
-		return router.HandleKeywordVersion(&routes.Ctx{c})
-	})
+	app.Get(routes.ChangelogUrl, Handler(router.HandleChangelog))
+
+	app.Get("/:kwType/version/:id", Handler(router.HandleKeywordVersion))
 
 	log.Fatal(app.Listen(":3000"))
 }

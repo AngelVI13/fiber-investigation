@@ -8,11 +8,10 @@ import (
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gocarina/gocsv"
-	"github.com/sujit-baniya/flash"
 )
 
 func (r *Router) HandleImportCsvGet(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 	data["Title"] = "Import keywords from CSV file"
 
 	return c.WithUrls().Render("views/import_csv", data)

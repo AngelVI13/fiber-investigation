@@ -57,7 +57,6 @@ type Ctx struct {
 	*fiber.Ctx
 }
 
-// c.WithUrls().WithError("my error").Render()
 func (c *Ctx) WithUrls() *Ctx {
 	data := fiber.Map{}
 
@@ -70,14 +69,14 @@ func (c *Ctx) WithUrls() *Ctx {
 }
 
 func (r *Router) HandleIndex(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 	data["Title"] = "Keyword storage"
 
 	return c.WithUrls().Render("views/index", data)
 }
 
 func (r *Router) HandleBusinessKeywords(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 	data["Title"] = "Business Keywords"
 
 	var keywords []database.Keyword
@@ -106,7 +105,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 }
 
 func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 	data["Title"] = "Technical Keywords"
 
 	var keywords []database.Keyword
@@ -135,7 +134,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 }
 
 func (r *Router) HandleAllKeywords(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 	data["Title"] = "All Keywords"
 
 	var keywords []database.Keyword
@@ -166,7 +165,7 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 }
 
 func (r Router) HandleKeywordVersion(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 
 	versionId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
@@ -201,7 +200,7 @@ func (r Router) HandleKeywordVersion(c *Ctx) error {
 }
 
 func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 
 	kwType := c.Params("kw_type")
 	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
@@ -210,7 +209,7 @@ func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
 }
 
 func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 
 	kwType := c.Params("kw_type")
 	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
@@ -255,7 +254,7 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 }
 
 func (r *Router) HandleEditKeywordGet(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 
 	kwId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
@@ -281,7 +280,7 @@ func (r *Router) HandleEditKeywordGet(c *Ctx) error {
 }
 
 func (r *Router) HandleEditKeywordPost(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 
 	kwId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
@@ -336,7 +335,7 @@ func (r *Router) HandleDeleteKeyword(c *Ctx) error {
 }
 
 func (r *Router) HandleChangelog(c *Ctx) error {
-	data := flash.Get(c.Ctx)
+	data := c.FlashData()
 	data["Title"] = "Changelog"
 
 	var history []database.History
