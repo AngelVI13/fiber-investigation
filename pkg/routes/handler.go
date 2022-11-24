@@ -9,7 +9,6 @@ import (
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sujit-baniya/flash"
 	"gorm.io/gorm"
 )
 
