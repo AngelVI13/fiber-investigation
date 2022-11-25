@@ -9,34 +9,30 @@ import (
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gocarina/gocsv"
-	"github.com/gofiber/fiber/v2"
 )
 
-func (r *Router) HandleExportCsvGet(c *fiber.Ctx) error {
-	return r.renderMainLayout(c, "views/export_csv", fiber.Map{
-		"Title":        "Export keywords as CSV",
-		"ExportBtnTxt": "Download",
-	})
+func (r *Router) HandleExportCsvGet(c *Ctx) error {
+	data := c.FlashData()
+	data["Title"] = "Export keywords as CSV"
+	data["ExportBtnTxt"] = "Download"
+
+	return c.WithUrls().Render("views/export_csv", data)
 }
 
-func (r *Router) HandleExportCsvPost(c *fiber.Ctx) error {
+func (r *Router) HandleExportCsvPost(c *Ctx) error {
 	// TODO: abstract away database layer to something like r.db.Keywords()
 	var keywords []database.Keyword
 
 	result := r.db.Where("valid_to IS NULL").Find(&keywords)
 	if result.Error != nil {
-		addMessage("There are no keywords", LevelPrimary)
-		// this will reload page and show message
-		return r.HandleExportCsvGet(c)
+		return c.WithError("There are no keywords").Redirect(ExportCsvUrl)
 	}
 
 	filename, err := generateCsvFile("keywords.csv", keywords)
 	if err != nil {
-		addMessage(
+		return c.WithError(
 			fmt.Sprintf("Error while generating csv file: %v", err),
-			LevelDanger,
-		)
-		return r.HandleExportCsvGet(c)
+		).Redirect(ExportCsvUrl)
 	}
 
 	c.Attachment(filepath.Base(filename))

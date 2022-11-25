@@ -8,26 +8,24 @@ import (
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gocarina/gocsv"
-	"github.com/gofiber/fiber/v2"
 )
 
-func (r *Router) HandleImportCsvGet(c *fiber.Ctx) error {
-	return r.renderMainLayout(c, "views/import_csv", fiber.Map{
-		"Title": "Import keywords from CSV file",
-	})
+func (r *Router) HandleImportCsvGet(c *Ctx) error {
+	data := c.FlashData()
+	data["Title"] = "Import keywords from CSV file"
+
+	return c.WithUrls().Render("views/import_csv", data)
 }
 
-func (r *Router) HandleImportCsvPost(c *fiber.Ctx) error {
+func (r *Router) HandleImportCsvPost(c *Ctx) error {
 	csvContents, err := csvFileContents(c)
 	if err != nil {
-		addMessage(err.Error(), LevelDanger)
-		return r.HandleImportCsvGet(c)
+		return c.WithError(err.Error()).Redirect(ImportCsvUrl)
 	}
 
 	keywords, err := keywordsFromCsv(csvContents)
 	if err != nil {
-		addMessage(err.Error(), LevelDanger)
-		return r.HandleImportCsvGet(c)
+		return c.WithError(err.Error()).Redirect(ImportCsvUrl)
 	}
 
 	errors := insertKeywordsToDb(r, keywords)
@@ -36,15 +34,12 @@ func (r *Router) HandleImportCsvPost(c *fiber.Ctx) error {
 		for _, e := range errors {
 			msg += fmt.Sprintf("\n\t* %s", e.Error())
 		}
-		addMessage(msg, LevelWarning)
-		return r.HandleImportCsvGet(c)
+		return c.WithWarning(msg).Redirect(ImportCsvUrl)
 	}
 
-	addMessage(
+	return c.WithSuccess(
 		fmt.Sprintf("Successfully imported %d keywords", len(keywords)),
-		LevelSuccess,
-	)
-	return r.HandleImportCsvGet(c)
+	).Redirect(ImportCsvUrl)
 }
 
 func keywordsFromCsv(csvText string) ([]*database.KeywordProps, error) {
@@ -99,7 +94,7 @@ func insertKeywordsToDb(
 	return errors
 }
 
-func csvFileContents(c *fiber.Ctx) (string, error) {
+func csvFileContents(c *Ctx) (string, error) {
 	form, err := c.MultipartForm()
 	if err != nil {
 		return "", fmt.Errorf("error while getting multipart form: %v", err)

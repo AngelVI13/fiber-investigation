@@ -1,5 +1,10 @@
 package routes
 
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/sujit-baniya/flash"
+)
+
 type MessageLevel string
 
 const (
@@ -9,26 +14,38 @@ const (
 	LevelDanger  MessageLevel = "danger"
 )
 
-// level can be only: primary, success, warning, danger. How to implement this?
-type message struct {
-	Text  string
-	Level MessageLevel
+func (c *Ctx) FlashData() fiber.Map {
+	return flash.Get(c.Ctx)
 }
 
-var messageQueue []message
-
-//addMessage adds message to the front of messageQueue slice
-func addMessage(text string, level MessageLevel) {
-	var newMessage message
-	newMessage.Text = text
-	newMessage.Level = level
-	messageQueue = append([]message{newMessage}, messageQueue...)
+func (c *Ctx) WithInfo(message string) *fiber.Ctx {
+	data := fiber.Map{
+		"Message": message,
+		"Level":   LevelPrimary,
+	}
+	return flash.WithInfo(c.Ctx, data)
 }
 
-//getMessages return all messages in messageQueue and makes it empty
-func getMessages() []message {
-	var tempMessages = make([]message, len(messageQueue))
-	copy(tempMessages, messageQueue)
-	messageQueue = []message(nil)
-	return tempMessages
+func (c *Ctx) WithSuccess(message string) *fiber.Ctx {
+	data := fiber.Map{
+		"Message": message,
+		"Level":   LevelSuccess,
+	}
+	return flash.WithSuccess(c.Ctx, data)
+}
+
+func (c *Ctx) WithError(message string) *fiber.Ctx {
+	data := fiber.Map{
+		"Message": message,
+		"Level":   LevelDanger,
+	}
+	return flash.WithError(c.Ctx, data)
+}
+
+func (c *Ctx) WithWarning(message string) *fiber.Ctx {
+	data := fiber.Map{
+		"Message": message,
+		"Level":   LevelWarning,
+	}
+	return flash.WithWarn(c.Ctx, data)
 }

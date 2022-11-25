@@ -15,6 +15,16 @@ import (
 //go:embed views/*
 var viewsfs embed.FS
 
+// Handler Wrapper to convert handler args to expected args by fiber
+func Handler(f func(c *routes.Ctx) error) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		ctx := &routes.Ctx{
+			Ctx: c,
+		}
+		return f(ctx)
+	}
+}
+
 func main() {
 	db_path := "test.db"
 	db, err := database.Create(db_path)
@@ -26,37 +36,39 @@ func main() {
 
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
-		Views: engine,
+		Views:       engine,
+		ViewsLayout: "views/layouts/main",
 	})
 
 	app.Static("/css", "./views/static/css")
 
 	router := routes.NewRouter(db)
-	app.Get(routes.UrlMap["IndexUrl"], router.HandleIndex)
-	app.Get(routes.UrlMap["BusinessKwdsUrl"], router.HandleBusinessKeywords)
-	app.Get(routes.UrlMap["TechnicalKwdsUrl"], router.HandleTechnicalKeywords)
-	app.Get(routes.UrlMap["AllKwdsUrl"], router.HandleAllKeywords)
+	app.Get(routes.IndexUrl, Handler(router.HandleIndex))
 
-	app.Get(fmt.Sprintf("%s/:kw_type", routes.UrlMap["CreateKwdUrl"]), router.HandleCreateKeywordGet)
-	app.Post(fmt.Sprintf("%s/:kw_type", routes.UrlMap["CreateKwdUrl"]), router.HandleCreateKeywordPost)
+	app.Get(routes.BusinessKwdsUrl, Handler(router.HandleBusinessKeywords))
+	app.Get(routes.TechnicalKwdsUrl, Handler(router.HandleTechnicalKeywords))
+	app.Get(routes.AllKwdsUrl, Handler(router.HandleAllKeywords))
 
-	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["EditKwdUrl"]), router.HandleEditKeywordGet)
-	app.Post(fmt.Sprintf("%s/:id", routes.UrlMap["EditKwdUrl"]), router.HandleEditKeywordPost)
+	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordGet))
+	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id", routes.UrlMap["DeleteKwdUrl"]), router.HandleDeleteKeyword)
+	app.Get(fmt.Sprintf("%s/:id", routes.EditKwdUrl), Handler(router.HandleEditKeywordGet))
+	app.Post(fmt.Sprintf("%s/:id", routes.EditKwdUrl), Handler(router.HandleEditKeywordPost))
 
-	app.Get(routes.UrlMap["ImportCsvUrl"], router.HandleImportCsvGet)
-	app.Post(routes.UrlMap["ImportCsvUrl"], router.HandleImportCsvPost)
+	app.Get(fmt.Sprintf("%s/:id", routes.DeleteKwdUrl), Handler(router.HandleDeleteKeyword))
 
-	app.Get(routes.UrlMap["ExportCsvUrl"], router.HandleExportCsvGet)
-	app.Post(routes.UrlMap["ExportCsvUrl"], router.HandleExportCsvPost)
+	app.Get(routes.ImportCsvUrl, Handler(router.HandleImportCsvGet))
+	app.Post(routes.ImportCsvUrl, Handler(router.HandleImportCsvPost))
 
-	app.Get(routes.UrlMap["ExportStubsUrl"], router.HandleExportStubsGet)
-	app.Post(routes.UrlMap["ExportStubsUrl"], router.HandleExportStubsPost)
+	app.Get(routes.ExportCsvUrl, Handler(router.HandleExportCsvGet))
+	app.Post(routes.ExportCsvUrl, Handler(router.HandleExportCsvPost))
 
-	app.Get(routes.UrlMap["ChangelogUrl"], router.HandleChangelog)
+	app.Get(routes.ExportStubsUrl, Handler(router.HandleExportStubsGet))
+	app.Post(routes.ExportStubsUrl, Handler(router.HandleExportStubsPost))
 
-	app.Get("/:kwType/version/:id", router.HandleKeywordVersion)
+	app.Get(routes.ChangelogUrl, Handler(router.HandleChangelog))
+
+	app.Get("/:kwType/version/:id", Handler(router.HandleKeywordVersion))
 
 	log.Fatal(app.Listen(":3000"))
 }

@@ -12,169 +12,206 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	IndexUrl         = "/"
+	BusinessKwdsUrl  = "/business_keywords"
+	TechnicalKwdsUrl = "/technical_keywords"
+	AllKwdsUrl       = "/all_keywords"
+	CreateKwdUrl     = "/create"
+	EditKwdUrl       = "/edit"
+	DeleteKwdUrl     = "/delete"
+	ChangelogUrl     = "/changelog"
+	ExportCsvUrl     = "/export/csv"
+	ExportStubsUrl   = "/export/stubs"
+	ImportCsvUrl     = "/import/csv"
+)
+
 var UrlMap = map[string]string{
-	"IndexUrl":         "/",
-	"BusinessKwdsUrl":  "/business_keywords",
-	"TechnicalKwdsUrl": "/technical_keywords",
-	"AllKwdsUrl":       "/all_keywords",
-	"CreateKwdUrl":     "/create",
-	"EditKwdUrl":       "/edit",
-	"DeleteKwdUrl":     "/delete",
-	"ChangelogUrl":     "/changelog",
-	"ExportCsvUrl":     "/export/csv",
-	"ExportStubsUrl":   "/export/stubs",
-	"ImportCsvUrl":     "/import/csv",
-}
-
-// UpdateMap update map `n` with values from map `m`
-func UpdateFiberMap[T any](m map[string]T, n fiber.Map) fiber.Map {
-	for k, v := range m {
-		n[k] = v
-	}
-	// adds alert messages. message rendering is done on every update of the page.
-	n["Messages"] = getMessages()
-
-	return n
+	"IndexUrl":         IndexUrl,
+	"BusinessKwdsUrl":  BusinessKwdsUrl,
+	"TechnicalKwdsUrl": TechnicalKwdsUrl,
+	"AllKwdsUrl":       AllKwdsUrl,
+	"CreateKwdUrl":     CreateKwdUrl,
+	"EditKwdUrl":       EditKwdUrl,
+	"DeleteKwdUrl":     DeleteKwdUrl,
+	"ChangelogUrl":     ChangelogUrl,
+	"ExportCsvUrl":     ExportCsvUrl,
+	"ExportStubsUrl":   ExportStubsUrl,
+	"ImportCsvUrl":     ImportCsvUrl,
 }
 
 type Router struct {
-	db         *gorm.DB
-	mainLayout string
+	db *gorm.DB
 }
 
 func NewRouter(db *gorm.DB) *Router {
 	return &Router{
-		db:         db,
-		mainLayout: "views/layouts/main",
+		db: db,
 	}
 }
 
-// render Wrapper for c.Render that makes sure to update
-// props with UrlMap & provide main layout.
-func (r *Router) renderMainLayout(
-	c *fiber.Ctx,
-	template string,
-	props fiber.Map,
-	layouts ...string,
-) error {
-	return c.Render(
-		template,
-		UpdateFiberMap(UrlMap, props),
-		append(layouts, r.mainLayout)...,
-	)
+// Ctx Wraps a fiber Ctx in order to attach utility
+// functions (WithUrls, WithError, etc.)
+type Ctx struct {
+	*fiber.Ctx
 }
 
-func (r *Router) HandleIndex(c *fiber.Ctx) error {
-	// Render index - start with views directory
-	return r.renderMainLayout(c, "views/index", fiber.Map{
-		"Title": "Keyword storage",
-	})
+func (c *Ctx) WithUrls() *Ctx {
+	data := fiber.Map{}
+
+	for k, v := range UrlMap {
+		data[k] = v
+	}
+
+	c.Bind(data)
+	return c
 }
 
-func (r *Router) HandleBusinessKeywords(c *fiber.Ctx) error {
+func (r *Router) HandleIndex(c *Ctx) error {
+	data := c.FlashData()
+	data["Title"] = "Keyword storage"
+
+	return c.WithUrls().Render("views/index", data)
+}
+
+func (r *Router) HandleBusinessKeywords(c *Ctx) error {
+	data := c.FlashData()
+	data["Title"] = "Business Keywords"
+
 	var keywords []database.Keyword
+
 	result := r.db.Where("kw_type = ? AND valid_to IS NULL", "business").Find(&keywords)
 	if result.Error != nil {
-		addMessage("There is no business keywords to display", LevelPrimary)
+		return c.WithUrls().WithInfo(
+			"There are no business keywords to display",
+		).Render("views/keywords", data)
 	}
+
 	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Failed to get Versioning info. Error: %v", err),
+		).Redirect(IndexUrl)
 	}
 
-	return r.renderMainLayout(c, "views/keywords", fiber.Map{
-		"Title":           "Business Keywords",
-		"Keywords":        keywords,
-		"KwType":          template.JS("business"),
-		"Versions":        allVersions,
-		"LatestVersion":   latestVersion.ID,
-		"SelectedVersion": latestVersion.ID,
-	})
+	data["Keywords"] = keywords
+	data["KwType"] = template.JS("business")
+	data["Versions"] = allVersions
+	data["LatestVersion"] = latestVersion.ID
+	data["SelectedVersion"] = latestVersion.ID
+
+	return c.WithUrls().Render("views/keywords", data)
 }
 
-func (r *Router) HandleTechnicalKeywords(c *fiber.Ctx) error {
+func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
+	data := c.FlashData()
+	data["Title"] = "Technical Keywords"
+
 	var keywords []database.Keyword
+
 	result := r.db.Where("kw_type = ? AND valid_to IS NULL", "technical").Find(&keywords)
 	if result.Error != nil {
-		addMessage("There is no business keywords to display", LevelPrimary)
+		return c.WithUrls().WithInfo(
+			"There are no technical keywords to display",
+		).Render("views/keywords", data)
 	}
+
 	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Failed to get Versioning info. Error: %v", err),
+		).Redirect(IndexUrl)
 	}
 
-	return r.renderMainLayout(c, "views/keywords", fiber.Map{
-		"Title":           "Technical Keywords",
-		"Keywords":        keywords,
-		"KwType":          template.JS("technical"),
-		"Versions":        allVersions,
-		"LatestVersion":   latestVersion.ID,
-		"SelectedVersion": latestVersion.ID,
-	})
+	data["Keywords"] = keywords
+	data["KwType"] = template.JS("technical")
+	data["Versions"] = allVersions
+	data["LatestVersion"] = latestVersion.ID
+	data["SelectedVersion"] = latestVersion.ID
+
+	return c.WithUrls().Render("views/keywords", data)
 }
 
-func (r *Router) HandleAllKeywords(c *fiber.Ctx) error {
+func (r *Router) HandleAllKeywords(c *Ctx) error {
+	data := c.FlashData()
+	data["Title"] = "All Keywords"
+
 	var keywords []database.Keyword
+
 	result := r.db.Where("valid_to IS NULL").Find(&keywords)
 	if result.Error != nil {
-		addMessage("There is no keywords to display", LevelPrimary)
+		// TODO: What to do when for a version doesn't have keywords but i still
+		// wanna go back to select older version where possibly there are keywords
+		return c.WithUrls().WithInfo(
+			"There are no keywords to display",
+		).Render("views/keywords", data)
 	}
 
 	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Failed to get Versioning info. Error: %v", err),
+		).Redirect(IndexUrl)
 	}
-	return r.renderMainLayout(c, "views/keywords", fiber.Map{
-		"Title":           "All Keywords",
-		"Keywords":        keywords,
-		"KwType":          template.JS("all"),
-		"Versions":        allVersions,
-		"LatestVersion":   latestVersion.ID,
-		"SelectedVersion": latestVersion.ID,
-	})
+
+	data["Keywords"] = keywords
+	data["KwType"] = template.JS("all")
+	data["Versions"] = allVersions
+	data["LatestVersion"] = latestVersion.ID
+	data["SelectedVersion"] = latestVersion.ID
+
+	return c.WithUrls().Render("views/keywords", data)
 }
 
-func (r Router) HandleKeywordVersion(c *fiber.Ctx) error {
+func (r Router) HandleKeywordVersion(c *Ctx) error {
+	data := c.FlashData()
+
 	versionId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		addMessage(fmt.Sprintf("Version id must be number, got: %s", c.Params("id")), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(
+			fmt.Sprintf("Version id must be number, got: %s", c.Params("id")),
+		).Redirect(IndexUrl)
 	}
 	kwType := c.Params("kwType")
 
 	kwds, err := database.KeywordsForVersion(r.db, versionId, kwType)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to fetch keywords information for version: %d", versionId), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Failed to fetch keywords information for version: %d", versionId),
+		).Redirect(IndexUrl)
 	}
+
 	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to get Versioning info. Error: %v", err), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Failed to get Versioning info. Error: %v", err),
+		).Redirect(IndexUrl)
 	}
 
-	return r.renderMainLayout(c, "views/keywords", fiber.Map{
-		"Title":           fmt.Sprintf("%s Keywords", kwType),
-		"Keywords":        kwds,
-		"KwType":          template.JS(kwType),
-		"Versions":        allVersions,
-		"LatestVersion":   latestVersion.ID,
-		"SelectedVersion": versionId,
-	})
+	data["Title"] = fmt.Sprintf("%s Keywords", kwType)
+	data["Keywords"] = kwds
+	data["KwType"] = template.JS(kwType)
+	data["Versions"] = allVersions
+	data["LatestVersion"] = latestVersion.ID
+	data["SelectedVersion"] = versionId
+
+	return c.WithUrls().Render("views/keywords", data)
 }
 
-func (r *Router) HandleCreateKeywordGet(c *fiber.Ctx) error {
+func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
+	data := c.FlashData()
+
 	kwType := c.Params("kw_type")
-	return r.renderMainLayout(c, "views/create", fiber.Map{
-		"Title": fmt.Sprintf("Add New %s Keyword", kwType),
-	})
+	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
+
+	return c.WithUrls().Render("views/create", data)
 }
 
-func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
+func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
+	data := c.FlashData()
+
 	kwType := c.Params("kw_type")
+	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
 
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
@@ -185,18 +222,15 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 	if strings.ContainsAny(nameValue, notAllowedCharset) ||
 		strings.ContainsAny(argsValue, notAllowedCharset) ||
 		strings.ContainsAny(docsValue, notAllowedCharset) {
-		addMessage(
+		// TODO: how to keep the filled data after the refresh
+		return c.WithError(
 			fmt.Sprintf(
 				`Can't create new Keyword '%s'!
                 Some of the fields below contains one or more not allowed characters(%s)`,
 				nameValue,
 				notAllowedCharset,
-			),
-			LevelDanger,
-		)
+			)).RedirectBack(IndexUrl)
 
-		// TODO: how to keep the filled data after the refresh
-		return r.HandleCreateKeywordGet(c)
 	}
 
 	err := database.InsertNewKeyword(
@@ -207,43 +241,52 @@ func (r *Router) HandleCreateKeywordPost(c *fiber.Ctx) error {
 		kwType,
 	)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to create new Keyword '%s'!", c.FormValue("name")), LevelDanger)
-	} else {
-		addMessage(fmt.Sprintf("Added new Keyword '%s'", c.FormValue("name")), LevelSuccess)
+		return c.WithError(
+			fmt.Sprintf("Failed to create new Keyword '%s'!", c.FormValue("name")),
+		).RedirectBack(IndexUrl)
 	}
+
 	// add message that kw was successfully added
-	return r.renderMainLayout(c, "views/create", fiber.Map{
-		"Title": fmt.Sprintf("Add New %s Keyword", kwType),
-	})
+	return c.WithSuccess(
+		fmt.Sprintf("Added new Keyword '%s'", c.FormValue("name")),
+	).RedirectBack(IndexUrl)
 }
 
-func (r *Router) HandleEditKeywordGet(c *fiber.Ctx) error {
+func (r *Router) HandleEditKeywordGet(c *Ctx) error {
+	data := c.FlashData()
+
 	kwId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		addMessage(fmt.Sprintf("Keyword id must be number, got: %s", c.Params("id")), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Keyword id must be number, got: %s", c.Params("id")),
+		).Redirect(IndexUrl)
 	}
 	var keyword database.Keyword
 	result := r.db.First(&keyword, kwId)
 
 	if result.Error != nil {
-		addMessage(fmt.Sprintf("Failed to get Keyword (ID: %d) to edit!", kwId), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Failed to get Keyword (ID: %d) to edit!", kwId),
+		).Redirect(IndexUrl)
 	}
 
-	return r.renderMainLayout(c, "views/edit", fiber.Map{
-		"Title":  fmt.Sprintf("Edit %s Keyword", keyword.Name),
-		"KwName": keyword.Name,
-		"Args":   keyword.Args,
-		"Docs":   keyword.Docs,
-	})
+	data["Title"] = fmt.Sprintf("Edit %s Keyword", keyword.Name)
+	data["KwName"] = keyword.Name
+	data["Args"] = keyword.Args
+	data["Docs"] = keyword.Docs
+
+	return c.WithUrls().Render("views/edit", data)
 }
 
-func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
+func (r *Router) HandleEditKeywordPost(c *Ctx) error {
+	data := c.FlashData()
+
 	kwId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		addMessage(fmt.Sprintf("Keyword id must be number, got: %s", c.Params("id")), LevelDanger)
-		return r.HandleIndex(c)
+		// TODO: Maybe this shold redirect back to where we came from and show error msg
+		return c.WithError(
+			fmt.Sprintf("Keyword id must be number, got: %s", c.Params("id")),
+		).Redirect(IndexUrl)
 	}
 
 	kwName := c.FormValue("name")
@@ -253,58 +296,75 @@ func (r *Router) HandleEditKeywordPost(c *fiber.Ctx) error {
 	err = database.UpdateKeyword(r.db, kwId, kwName, args, docs)
 
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to edit Keyword '%s'!", kwName), LevelDanger)
-	} else {
-		addMessage(fmt.Sprintf("Keyword '%s' was successfully updated.", kwName), LevelSuccess)
+		// TODO: keep keyword data when going back
+		return c.WithError(fmt.Sprintf(
+			"Failed to edit Keyword '%s'!", kwName),
+		).Redirect(EditKwdUrl)
 	}
 
-	return r.renderMainLayout(c, "views/edit", fiber.Map{
-		"Title":  fmt.Sprintf("Edit %s Keyword", kwName),
-		"KwName": kwName,
-		"Args":   args,
-		"Docs":   docs,
-	})
+	data["Title"] = fmt.Sprintf("Edit %s Keyword", kwName)
+	data["KwName"] = kwName
+	data["Args"] = args
+	data["Docs"] = docs
+
+	// TODO: add kw_type in params so that we can return to keyword page for that type
+	return c.WithUrls().WithSuccess(fmt.Sprintf(
+		"Keyword '%s' was successfully updated.", kwName),
+	).Redirect(IndexUrl)
 }
 
-func (r *Router) HandleDeleteKeyword(c *fiber.Ctx) error {
+func (r *Router) HandleDeleteKeyword(c *Ctx) error {
 	kwId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		addMessage(fmt.Sprintf("Keyword id must be number, got: %s", c.Params("id")), LevelDanger)
-		return r.HandleIndex(c)
+		return c.WithError(fmt.Sprintf(
+			"Keyword id must be number, got: %s", c.Params("id")),
+		).Redirect(IndexUrl)
 	}
 
 	err = database.DeleteKeyword(r.db, kwId)
 	if err != nil {
-		addMessage(fmt.Sprintf("Failed to delete Keyword. Id: %d", kwId), LevelDanger)
-	} else {
-		addMessage(fmt.Sprintf("Keyword deleted successfully. Id: %d", kwId), LevelPrimary)
+		return c.WithError(fmt.Sprintf(
+			"Failed to delete Keyword. Id: %d", kwId),
+		).Redirect(IndexUrl)
 	}
 
-	return r.HandleIndex(c)
+	return c.WithSuccess(fmt.Sprintf(
+		"Keyword deleted successfully. Id: %d", kwId),
+	).Redirect(IndexUrl)
 }
 
-func (r *Router) HandleChangelog(c *fiber.Ctx) error {
+func (r *Router) HandleChangelog(c *Ctx) error {
+	data := c.FlashData()
+	data["Title"] = "Changelog"
+
 	var history []database.History
+
 	result := r.db.Find(&history)
 	if result.Error != nil {
-		addMessage("There is no versions to display", LevelPrimary)
+		return c.WithUrls().WithInfo(
+			"There is no versions to display",
+		).Render("views/changelog", data)
 	}
 
-	return r.renderMainLayout(c, "views/changelog", fiber.Map{
-		"Title":   "Changelog",
-		"History": history,
-	})
+	data["History"] = history
+	return c.WithUrls().Render("views/changelog", data)
 }
 
 func getLatestAndAllVersions(db *gorm.DB) (database.History, []database.History, error) {
 	allVersions, err := database.AllVersions(db)
 
 	if err != nil {
-		return database.History{}, nil, fmt.Errorf("failed to get all Versions from db. error: %v", err)
+		return database.History{}, nil, fmt.Errorf(
+			"failed to get all Versions from db. error: %v",
+			err,
+		)
 	}
 	latestVersion, err := database.LatestVersion(db)
 	if err != nil {
-		return database.History{}, nil, fmt.Errorf("failed to get latest Version from db. error: %v", err)
+		return database.History{}, nil, fmt.Errorf(
+			"failed to get latest Version from db. error: %v",
+			err,
+		)
 	}
 	return latestVersion, allVersions, nil
 }
