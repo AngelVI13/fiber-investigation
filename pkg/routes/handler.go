@@ -78,10 +78,8 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Business Keywords"
 
-	var keywords []database.Keyword
-
-	result := r.db.Where("kw_type = ? AND valid_to IS NULL", "business").Find(&keywords)
-	if result.Error != nil {
+	keywords, err := database.BusinessKeywords(r.db)
+	if err != nil {
 		return c.WithUrls().WithInfo(
 			"There are no business keywords to display",
 		).Render("views/keywords", data)
@@ -107,10 +105,8 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Technical Keywords"
 
-	var keywords []database.Keyword
-
-	result := r.db.Where("kw_type = ? AND valid_to IS NULL", "technical").Find(&keywords)
-	if result.Error != nil {
+	keywords, err := database.TechnicalKeywords(r.db)
+	if err != nil {
 		return c.WithUrls().WithInfo(
 			"There are no technical keywords to display",
 		).Render("views/keywords", data)
@@ -136,10 +132,8 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "All Keywords"
 
-	var keywords []database.Keyword
-
-	result := r.db.Where("valid_to IS NULL").Find(&keywords)
-	if result.Error != nil {
+	keywords, err := database.AllKeywords(r.db)
+	if err != nil {
 		// TODO: What to do when for a version doesn't have keywords but i still
 		// wanna go back to select older version where possibly there are keywords
 		return c.WithUrls().WithInfo(

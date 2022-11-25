@@ -3,6 +3,8 @@ package routes
 import (
 	"strconv"
 	"testing"
+
+	"github.com/AngelVI13/fiber-investigation/pkg/database"
 )
 
 func TestKeywordsFromCsv(t *testing.T) {
@@ -47,7 +49,7 @@ My new keyword|"arg1=""a"", arg2=""b"""|This is my special keyword docs|business
 		)
 	}
 
-	expKwType := "business"
+	expKwType := database.Business
 	if keyword.KwType != expKwType {
 		t.Errorf(
 			"expected %s keyword type but got %s",

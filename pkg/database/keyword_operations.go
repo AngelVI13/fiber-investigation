@@ -7,6 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	Business  = "business"
+	Technical = "technical"
+	All       = "all"
+)
+
 //InsertNewKeyword insert new keyword to database. In case it already exist, raises error
 func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kwType string) error {
 	// first check that there is no kw with this name. this looks like not optimal solution
@@ -95,8 +101,8 @@ func KeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keyword, err
 	}
 
 	var typeFilter []string
-	if kwType == "all" {
-		typeFilter = append(typeFilter, "business", "technical")
+	if kwType == All {
+		typeFilter = append(typeFilter, Business, Technical)
 	} else {
 		typeFilter = append(typeFilter, kwType)
 	}
@@ -113,7 +119,7 @@ func KeywordsForVersion(db *gorm.DB, version int, kwType string) ([]Keyword, err
 		selectedVersion History
 		nextVersion     History
 	)
-	
+
 	result := db.First(&selectedVersion, version)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to get version with id: %d", version)
@@ -157,4 +163,27 @@ func LatestVersion(db *gorm.DB) (History, error) {
 		return latestVersion, fmt.Errorf("failed to get last version information")
 	}
 	return latestVersion, nil
+}
+
+var BusinessKeywords = KeywordByType(Business)
+var TechnicalKeywords = KeywordByType(Technical)
+
+func KeywordByType(kwType string) func(db *gorm.DB) ([]Keyword, error) {
+	return func(db *gorm.DB) ([]Keyword, error) {
+		var keywords []Keyword
+
+		result := db.Where(
+			"kw_type = ? AND valid_to IS NULL",
+			kwType,
+		).Find(&keywords)
+
+		return keywords, result.Error
+	}
+}
+
+func AllKeywords(db *gorm.DB) ([]Keyword, error) {
+	var keywords []Keyword
+
+	result := db.Where("valid_to IS NULL").Find(&keywords)
+	return keywords, result.Error
 }

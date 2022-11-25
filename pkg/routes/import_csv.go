@@ -62,11 +62,10 @@ func insertKeywordsToDb(
 	keywordsToInsert []*database.KeywordProps,
 ) []error {
 	var (
-		allKeywords []database.Keyword
-		errors      []error
+		errors []error
 	)
 
-	_ = r.db.Where("valid_to IS NULL").Find(&allKeywords)
+	allKeywords, _ := database.AllKeywords(r.db)
 
 	var keywordMap = map[string]*database.Keyword{}
 	for i := range allKeywords {

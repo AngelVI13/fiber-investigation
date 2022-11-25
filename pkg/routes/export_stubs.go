@@ -30,11 +30,8 @@ func (r *Router) HandleExportStubsGet(c *Ctx) error {
 func (r *Router) HandleExportStubsPost(c *Ctx) error {
 	stubType := c.FormValue("stub_type")
 
-	// TODO: abstract away database layer to something like r.db.Keywords()
-	var keywords []database.Keyword
-
-	result := r.db.Where("valid_to IS NULL").Find(&keywords)
-	if result.Error != nil {
+	keywords, err := database.AllKeywords(r.db)
+	if err != nil {
 		return c.WithInfo("There are no keywords").Redirect(ExportStubsUrl)
 	}
 
