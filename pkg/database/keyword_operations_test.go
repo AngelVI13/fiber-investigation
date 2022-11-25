@@ -27,21 +27,20 @@ func FuzzGetKwdsForVersion(f *testing.F) {
 		f.Errorf("Failed to populate test db with mock data")
 	}
 
-	f.Add(6, 3, "business")
-	f.Add(3, 3, "business")
-	f.Add(2, 2, "business")
-	f.Add(1, 1, "business")
+	f.Add(6, 3, Business)
+	f.Add(3, 3, Business)
+	f.Add(2, 2, Business)
+	f.Add(1, 1, Business)
 
-	f.Add(6, 3, "technical")
-	f.Add(5, 2, "technical")
-	f.Add(4, 1, "technical")
-	f.Add(1, 0, "technical")
+	f.Add(6, 3, Technical)
+	f.Add(5, 2, Technical)
+	f.Add(4, 1, Technical)
+	f.Add(1, 0, Technical)
 
-	f.Add(6, 6, "all")
-	f.Add(3, 3, "all")
-	f.Add(1, 1, "all")
-	f.Add(0, 0, "all")
-
+	f.Add(6, 6, All)
+	f.Add(3, 3, All)
+	f.Add(1, 1, All)
+	f.Add(0, 0, All)
 
 	f.Fuzz(func(t *testing.T, version int, count int, kwType string) {
 		keywordsForVersion, _ := KeywordsForVersion(testDb, version, kwType)
@@ -61,9 +60,9 @@ func populateMockKeywords(db *gorm.DB) error {
 	var kwType string
 	for i := 1; i <= 6; i++ {
 		if i <= 3 {
-			kwType = "business"
+			kwType = Business
 		} else {
-			kwType = "technical"
+			kwType = Technical
 		}
 		// TODO: InsertNewKeyword is not tested yet
 		err := InsertNewKeyword(
