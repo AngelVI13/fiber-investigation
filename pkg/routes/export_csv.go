@@ -16,13 +16,15 @@ func (r *Router) HandleExportCsvGet(c *Ctx) error {
 	data["Title"] = "Export keywords as CSV"
 	data["ExportBtnTxt"] = "Download"
 
-	return c.WithUrls().Render("views/export_csv", data)
+	return c.WithUrls().Render(ExportCsvView, data)
 }
 
 func (r *Router) HandleExportCsvPost(c *Ctx) error {
 	keywords, err := database.AllKeywords(r.db)
 	if err != nil {
-		return c.WithError("There are no keywords").Redirect(ExportCsvUrl)
+		return c.WithError(fmt.Sprintf(
+			"error while fetching all keywords: %v", err),
+		).Redirect(ExportCsvUrl)
 	}
 
 	filename, err := generateCsvFile("keywords.csv", keywords)
