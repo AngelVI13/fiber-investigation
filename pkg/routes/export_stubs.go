@@ -32,7 +32,9 @@ func (r *Router) HandleExportStubsPost(c *Ctx) error {
 
 	keywords, err := database.AllKeywords(r.db)
 	if err != nil {
-		return c.WithInfo("There are no keywords").Redirect(ExportStubsUrl)
+		return c.WithError(fmt.Sprintf(
+			"error while fetching all keywords: %v", err),
+		).Redirect(ExportStubsUrl)
 	}
 
 	var stubGenerator StubGenerator

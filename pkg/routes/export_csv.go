@@ -22,7 +22,9 @@ func (r *Router) HandleExportCsvGet(c *Ctx) error {
 func (r *Router) HandleExportCsvPost(c *Ctx) error {
 	keywords, err := database.AllKeywords(r.db)
 	if err != nil {
-		return c.WithError("There are no keywords").Redirect(ExportCsvUrl)
+		return c.WithError(fmt.Sprintf(
+			"error while fetching all keywords: %v", err),
+		).Redirect(ExportCsvUrl)
 	}
 
 	filename, err := generateCsvFile("keywords.csv", keywords)

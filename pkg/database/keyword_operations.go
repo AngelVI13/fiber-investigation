@@ -187,3 +187,22 @@ func AllKeywords(db *gorm.DB) ([]Keyword, error) {
 	result := db.Where("valid_to IS NULL").Find(&keywords)
 	return keywords, result.Error
 }
+
+func LatestAndAllVersions(db *gorm.DB) (History, []History, error) {
+	allVersions, err := AllVersions(db)
+	if err != nil {
+		return History{}, nil, fmt.Errorf(
+			"failed to get all Versions from db. error: %v",
+			err,
+		)
+	}
+
+	latestVersion, err := LatestVersion(db)
+	if err != nil {
+		return History{}, nil, fmt.Errorf(
+			"failed to get latest Version from db. error: %v",
+			err,
+		)
+	}
+	return latestVersion, allVersions, nil
+}

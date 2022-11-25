@@ -80,12 +80,12 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 
 	keywords, err := database.BusinessKeywords(r.db)
 	if err != nil {
-		return c.WithUrls().WithInfo(
-			"There are no business keywords to display",
+		return c.WithUrls().WithError(fmt.Sprintf(
+			"error while fetching business keywords: %v", err),
 		).Render("views/keywords", data)
 	}
 
-	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
+	latestVersion, allVersions, err := database.LatestAndAllVersions(r.db)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"Failed to get Versioning info. Error: %v", err),
@@ -93,7 +93,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	}
 
 	data["Keywords"] = keywords
-	data["KwType"] = template.JS("business")
+	data["KwType"] = template.JS(database.Business)
 	data["Versions"] = allVersions
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
@@ -107,12 +107,12 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 
 	keywords, err := database.TechnicalKeywords(r.db)
 	if err != nil {
-		return c.WithUrls().WithInfo(
-			"There are no technical keywords to display",
+		return c.WithUrls().WithError(fmt.Sprintf(
+			"error while fetching technical keywords: %v", err),
 		).Render("views/keywords", data)
 	}
 
-	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
+	latestVersion, allVersions, err := database.LatestAndAllVersions(r.db)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"Failed to get Versioning info. Error: %v", err),
@@ -120,7 +120,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 	}
 
 	data["Keywords"] = keywords
-	data["KwType"] = template.JS("technical")
+	data["KwType"] = template.JS(database.Technical)
 	data["Versions"] = allVersions
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
@@ -134,14 +134,12 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 
 	keywords, err := database.AllKeywords(r.db)
 	if err != nil {
-		// TODO: What to do when for a version doesn't have keywords but i still
-		// wanna go back to select older version where possibly there are keywords
-		return c.WithUrls().WithInfo(
-			"There are no keywords to display",
+		return c.WithUrls().WithError(fmt.Sprintf(
+			"error while fetching all keywords: %v", err),
 		).Render("views/keywords", data)
 	}
 
-	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
+	latestVersion, allVersions, err := database.LatestAndAllVersions(r.db)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"Failed to get Versioning info. Error: %v", err),
@@ -149,7 +147,7 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 	}
 
 	data["Keywords"] = keywords
-	data["KwType"] = template.JS("all")
+	data["KwType"] = template.JS(database.All)
 	data["Versions"] = allVersions
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
@@ -175,7 +173,7 @@ func (r Router) HandleKeywordVersion(c *Ctx) error {
 		).Redirect(IndexUrl)
 	}
 
-	latestVersion, allVersions, err := getLatestAndAllVersions(r.db)
+	latestVersion, allVersions, err := database.LatestAndAllVersions(r.db)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"Failed to get Versioning info. Error: %v", err),
@@ -342,23 +340,4 @@ func (r *Router) HandleChangelog(c *Ctx) error {
 
 	data["History"] = history
 	return c.WithUrls().Render("views/changelog", data)
-}
-
-func getLatestAndAllVersions(db *gorm.DB) (database.History, []database.History, error) {
-	allVersions, err := database.AllVersions(db)
-
-	if err != nil {
-		return database.History{}, nil, fmt.Errorf(
-			"failed to get all Versions from db. error: %v",
-			err,
-		)
-	}
-	latestVersion, err := database.LatestVersion(db)
-	if err != nil {
-		return database.History{}, nil, fmt.Errorf(
-			"failed to get latest Version from db. error: %v",
-			err,
-		)
-	}
-	return latestVersion, allVersions, nil
 }
