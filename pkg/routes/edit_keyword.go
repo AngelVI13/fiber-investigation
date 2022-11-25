@@ -36,12 +36,15 @@ func (r *Router) HandleEditKeywordGet(c *Ctx) error {
 func (r *Router) HandleEditKeywordPost(c *Ctx) error {
 	data := c.FlashData()
 
+	kwType := c.Params("kw_type")
+
+	redirectUrl := RouteForKeywordType(kwType)
+
 	kwId, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		// TODO: Maybe this shold redirect back to where we came from and show error msg
 		return c.WithError(
 			fmt.Sprintf("Keyword id must be number, got: %s", c.Params("id")),
-		).Redirect(IndexUrl)
+		).Redirect(redirectUrl)
 	}
 
 	kwName := c.FormValue("name")
@@ -62,8 +65,7 @@ func (r *Router) HandleEditKeywordPost(c *Ctx) error {
 	data["Args"] = args
 	data["Docs"] = docs
 
-	// TODO: add kw_type in params so that we can return to keyword page for that type
 	return c.WithUrls().WithSuccess(fmt.Sprintf(
 		"Keyword '%s' was successfully updated.", kwName),
-	).Redirect(IndexUrl)
+	).Redirect(redirectUrl)
 }

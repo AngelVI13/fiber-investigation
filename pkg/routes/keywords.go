@@ -7,6 +7,17 @@ import (
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 )
 
+func RouteForKeywordType(kwType string) string {
+	url := AllKwdsUrl
+	if kwType == database.Technical {
+		url = TechnicalKwdsUrl
+	} else if kwType == database.Business {
+		url = BusinessKwdsUrl
+	}
+
+	return url
+}
+
 func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Business Keywords"

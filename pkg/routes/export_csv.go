@@ -62,8 +62,6 @@ func generateCsv(keywords []database.Keyword) (string, error) {
 		keywordsCsv = append(keywordsCsv, &keywords[i].KeywordProps)
 	}
 
-	// TODO: What to do with the separator character?
-	// Can't use comma cause this might be used in the docs or args or impl
 	gocsv.SetCSVWriter(func(out io.Writer) *gocsv.SafeCSVWriter {
 		writer := csv.NewWriter(out)
 		writer.Comma = '|'

@@ -22,6 +22,8 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	kwType := c.Params("kw_type")
 	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
 
+	redirectUrl := RouteForKeywordType(kwType)
+
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
 	docsValue := c.FormValue("docs")
@@ -58,5 +60,5 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	// add message that kw was successfully added
 	return c.WithSuccess(
 		fmt.Sprintf("Added new Keyword '%s'", c.FormValue("name")),
-	).RedirectBack(IndexUrl)
+	).Redirect(redirectUrl)
 }

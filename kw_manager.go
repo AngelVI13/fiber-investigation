@@ -52,10 +52,10 @@ func main() {
 	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordGet))
 	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id", routes.EditKwdUrl), Handler(router.HandleEditKeywordGet))
-	app.Post(fmt.Sprintf("%s/:id", routes.EditKwdUrl), Handler(router.HandleEditKeywordPost))
+	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), Handler(router.HandleEditKeywordGet))
+	app.Post(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), Handler(router.HandleEditKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id", routes.DeleteKwdUrl), Handler(router.HandleDeleteKeyword))
+	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.DeleteKwdUrl), Handler(router.HandleDeleteKeyword))
 
 	app.Get(routes.ImportCsvUrl, Handler(router.HandleImportCsvGet))
 	app.Post(routes.ImportCsvUrl, Handler(router.HandleImportCsvPost))
