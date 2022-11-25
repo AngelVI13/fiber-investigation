@@ -24,7 +24,7 @@ func (r *Router) HandleExportStubsGet(c *Ctx) error {
 	data["PythonStub"] = PythonStub
 	data["RfStub"] = RfStub
 
-	return c.WithUrls().Render("views/export_stubs", data)
+	return c.WithUrls().Render(ExportStubsView, data)
 }
 
 func (r *Router) HandleExportStubsPost(c *Ctx) error {

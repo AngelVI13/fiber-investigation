@@ -12,34 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	IndexUrl         = "/"
-	BusinessKwdsUrl  = "/business_keywords"
-	TechnicalKwdsUrl = "/technical_keywords"
-	AllKwdsUrl       = "/all_keywords"
-	CreateKwdUrl     = "/create"
-	EditKwdUrl       = "/edit"
-	DeleteKwdUrl     = "/delete"
-	ChangelogUrl     = "/changelog"
-	ExportCsvUrl     = "/export/csv"
-	ExportStubsUrl   = "/export/stubs"
-	ImportCsvUrl     = "/import/csv"
-)
-
-var UrlMap = map[string]string{
-	"IndexUrl":         IndexUrl,
-	"BusinessKwdsUrl":  BusinessKwdsUrl,
-	"TechnicalKwdsUrl": TechnicalKwdsUrl,
-	"AllKwdsUrl":       AllKwdsUrl,
-	"CreateKwdUrl":     CreateKwdUrl,
-	"EditKwdUrl":       EditKwdUrl,
-	"DeleteKwdUrl":     DeleteKwdUrl,
-	"ChangelogUrl":     ChangelogUrl,
-	"ExportCsvUrl":     ExportCsvUrl,
-	"ExportStubsUrl":   ExportStubsUrl,
-	"ImportCsvUrl":     ImportCsvUrl,
-}
-
 type Router struct {
 	db *gorm.DB
 }
@@ -71,7 +43,7 @@ func (r *Router) HandleIndex(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Keyword storage"
 
-	return c.WithUrls().Render("views/index", data)
+	return c.WithUrls().Render(IndexView, data)
 }
 
 func (r *Router) HandleBusinessKeywords(c *Ctx) error {
@@ -82,7 +54,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	if err != nil {
 		return c.WithUrls().WithError(fmt.Sprintf(
 			"error while fetching business keywords: %v", err),
-		).Render("views/keywords", data)
+		).Render(KeywordsView, data)
 	}
 
 	latestVersion, allVersions, err := database.LatestAndAllVersions(r.db)
@@ -98,7 +70,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render("views/keywords", data)
+	return c.WithUrls().Render(KeywordsView, data)
 }
 
 func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
@@ -109,7 +81,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 	if err != nil {
 		return c.WithUrls().WithError(fmt.Sprintf(
 			"error while fetching technical keywords: %v", err),
-		).Render("views/keywords", data)
+		).Render(KeywordsView, data)
 	}
 
 	latestVersion, allVersions, err := database.LatestAndAllVersions(r.db)
@@ -125,7 +97,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render("views/keywords", data)
+	return c.WithUrls().Render(KeywordsView, data)
 }
 
 func (r *Router) HandleAllKeywords(c *Ctx) error {
@@ -136,7 +108,7 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 	if err != nil {
 		return c.WithUrls().WithError(fmt.Sprintf(
 			"error while fetching all keywords: %v", err),
-		).Render("views/keywords", data)
+		).Render(KeywordsView, data)
 	}
 
 	latestVersion, allVersions, err := database.LatestAndAllVersions(r.db)
@@ -152,7 +124,7 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render("views/keywords", data)
+	return c.WithUrls().Render(KeywordsView, data)
 }
 
 func (r Router) HandleKeywordVersion(c *Ctx) error {
@@ -187,7 +159,7 @@ func (r Router) HandleKeywordVersion(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = versionId
 
-	return c.WithUrls().Render("views/keywords", data)
+	return c.WithUrls().Render(KeywordsView, data)
 }
 
 func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
@@ -196,7 +168,7 @@ func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
 	kwType := c.Params("kw_type")
 	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
 
-	return c.WithUrls().Render("views/create", data)
+	return c.WithUrls().Render(CreateView, data)
 }
 
 func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
@@ -267,7 +239,7 @@ func (r *Router) HandleEditKeywordGet(c *Ctx) error {
 	data["Args"] = keyword.Args
 	data["Docs"] = keyword.Docs
 
-	return c.WithUrls().Render("views/edit", data)
+	return c.WithUrls().Render(EditView, data)
 }
 
 func (r *Router) HandleEditKeywordPost(c *Ctx) error {
@@ -335,9 +307,9 @@ func (r *Router) HandleChangelog(c *Ctx) error {
 	if result.Error != nil {
 		return c.WithUrls().WithInfo(
 			"There is no versions to display",
-		).Render("views/changelog", data)
+		).Render(ChangelogView, data)
 	}
 
 	data["History"] = history
-	return c.WithUrls().Render("views/changelog", data)
+	return c.WithUrls().Render(ChangelogView, data)
 }
