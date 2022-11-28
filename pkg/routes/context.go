@@ -70,8 +70,3 @@ func (c *Ctx) WithWarning(message string) *Ctx {
 	flash.WithWarn(c.Ctx, data)
 	return c
 }
-
-func (c *Ctx) WithData(data fiber.Map) *Ctx {
-	flash.WithData(c.Ctx, data)
-	return c
-}
