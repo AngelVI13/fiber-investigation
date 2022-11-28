@@ -7,6 +7,8 @@ import (
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 )
 
+var notAllowedCharset = "|"
+
 func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
 	data := c.FlashData()
 
@@ -31,8 +33,6 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
 	docsValue := c.FormValue("docs")
-
-	notAllowedCharset := "|"
 
 	if strings.ContainsAny(nameValue, notAllowedCharset) ||
 		strings.ContainsAny(argsValue, notAllowedCharset) ||

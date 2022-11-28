@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 )
@@ -66,6 +67,28 @@ func (r *Router) HandleEditKeywordPost(c *Ctx) error {
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
 	docsValue := c.FormValue("docs")
+
+	if strings.ContainsAny(nameValue, notAllowedCharset) ||
+		strings.ContainsAny(argsValue, notAllowedCharset) ||
+		strings.ContainsAny(docsValue, notAllowedCharset) {
+		query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
+
+		editUrl, err := editUrl(kwId, kwType, query)
+		if err != nil {
+			return c.WithError(fmt.Sprintf(
+				`error while trying to redirect back to %s 
+                page after error: couldn't format url`, EditKwdUrl),
+			).Redirect(IndexUrl)
+		}
+
+		return c.WithError(
+			fmt.Sprintf(
+				`Can't edit Keyword '%s'! Some of the fields below 
+                contains one or more not allowed characters(%s)`,
+				nameValue,
+				notAllowedCharset,
+			)).Redirect(editUrl)
+	}
 
 	err = database.UpdateKeyword(r.db, kwId, nameValue, argsValue, docsValue)
 
