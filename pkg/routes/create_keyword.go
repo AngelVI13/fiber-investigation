@@ -26,7 +26,7 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 
 	// Reset query string cause otherwise FormValue takes values from
 	// query first and from multipart form second
-	c.Request().URI().SetQueryString("")
+	resetQueryString(c)
 
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
@@ -37,13 +37,7 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	if strings.ContainsAny(nameValue, notAllowedCharset) ||
 		strings.ContainsAny(argsValue, notAllowedCharset) ||
 		strings.ContainsAny(docsValue, notAllowedCharset) {
-		// Add query args with filled-in values so user doesn't lose
-		// entered data on redirect
-		c.Request().URI().QueryArgs().Add("name", nameValue)
-		c.Request().URI().QueryArgs().Add("args", argsValue)
-		c.Request().URI().QueryArgs().Add("docs", docsValue)
-		query := c.Request().URI().QueryArgs().String()
-
+		query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
 		return c.WithError(
 			fmt.Sprintf(
 				`Can't create new Keyword '%s'! Some of the fields below 
@@ -61,11 +55,7 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 		kwType,
 	)
 	if err != nil {
-		c.Request().URI().QueryArgs().Add("name", nameValue)
-		c.Request().URI().QueryArgs().Add("args", argsValue)
-		c.Request().URI().QueryArgs().Add("docs", docsValue)
-		query := c.Request().URI().QueryArgs().String()
-
+		query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
 		return c.WithError(fmt.Sprintf(
 			"Failed to create new Keyword '%s'!", nameValue),
 		).Redirect(fmt.Sprintf("%s/%s?%s", CreateKwdUrl, kwType, query))
@@ -75,4 +65,17 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	return c.WithSuccess(fmt.Sprintf(
 		"Added new Keyword '%s'", c.FormValue("name")),
 	).Redirect(redirectUrl)
+}
+
+func makeKeywordQuery(c *Ctx, name, args, docs string) string {
+	// Add query args with filled-in values so user doesn't lose
+	// entered data on redirect
+	c.Request().URI().QueryArgs().Add("name", name)
+	c.Request().URI().QueryArgs().Add("args", args)
+	c.Request().URI().QueryArgs().Add("docs", docs)
+	return c.Request().URI().QueryArgs().String()
+}
+
+func resetQueryString(c *Ctx) {
+	c.Request().URI().SetQueryString("")
 }
