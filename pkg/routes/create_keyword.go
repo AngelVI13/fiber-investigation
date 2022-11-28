@@ -13,7 +13,7 @@ func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
 	kwType := c.Params("kw_type")
 	data["Title"] = fmt.Sprintf("Add New %s Keyword", kwType)
 
-	return c.WithUrls().Render(CreateView, data)
+	return c.Render(CreateView, data)
 }
 
 func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
@@ -36,12 +36,11 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 		// TODO: how to keep the filled data after the refresh
 		return c.WithError(
 			fmt.Sprintf(
-				`Can't create new Keyword '%s'!
-                Some of the fields below contains one or more not allowed characters(%s)`,
+				`Can't create new Keyword '%s'! Some of the fields below 
+                contains one or more not allowed characters(%s)`,
 				nameValue,
 				notAllowedCharset,
 			)).RedirectBack(IndexUrl)
-
 	}
 
 	err := database.InsertNewKeyword(
@@ -52,13 +51,13 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 		kwType,
 	)
 	if err != nil {
-		return c.WithError(
-			fmt.Sprintf("Failed to create new Keyword '%s'!", c.FormValue("name")),
+		return c.WithError(fmt.Sprintf(
+			"Failed to create new Keyword '%s'!", c.FormValue("name")),
 		).RedirectBack(IndexUrl)
 	}
 
 	// add message that kw was successfully added
-	return c.WithSuccess(
-		fmt.Sprintf("Added new Keyword '%s'", c.FormValue("name")),
+	return c.WithSuccess(fmt.Sprintf(
+		"Added new Keyword '%s'", c.FormValue("name")),
 	).Redirect(redirectUrl)
 }

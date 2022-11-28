@@ -30,7 +30,7 @@ func (r *Router) HandleEditKeywordGet(c *Ctx) error {
 	data["Args"] = keyword.Args
 	data["Docs"] = keyword.Docs
 
-	return c.WithUrls().Render(EditView, data)
+	return c.Render(EditView, data)
 }
 
 func (r *Router) HandleEditKeywordPost(c *Ctx) error {
@@ -65,7 +65,7 @@ func (r *Router) HandleEditKeywordPost(c *Ctx) error {
 	data["Args"] = args
 	data["Docs"] = docs
 
-	return c.WithUrls().WithSuccess(fmt.Sprintf(
+	return c.WithSuccess(fmt.Sprintf(
 		"Keyword '%s' was successfully updated.", kwName),
 	).Redirect(redirectUrl)
 }

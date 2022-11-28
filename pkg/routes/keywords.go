@@ -24,7 +24,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 
 	keywords, err := database.BusinessKeywords(r.db)
 	if err != nil {
-		return c.WithUrls().WithError(fmt.Sprintf(
+		return c.WithError(fmt.Sprintf(
 			"error while fetching business keywords: %v", err),
 		).Render(KeywordsView, data)
 	}
@@ -42,7 +42,7 @@ func (r *Router) HandleBusinessKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render(KeywordsView, data)
+	return c.Render(KeywordsView, data)
 }
 
 func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
@@ -51,7 +51,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 
 	keywords, err := database.TechnicalKeywords(r.db)
 	if err != nil {
-		return c.WithUrls().WithError(fmt.Sprintf(
+		return c.WithError(fmt.Sprintf(
 			"error while fetching technical keywords: %v", err),
 		).Render(KeywordsView, data)
 	}
@@ -69,7 +69,7 @@ func (r *Router) HandleTechnicalKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render(KeywordsView, data)
+	return c.Render(KeywordsView, data)
 }
 
 func (r *Router) HandleAllKeywords(c *Ctx) error {
@@ -78,7 +78,7 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 
 	keywords, err := database.AllKeywords(r.db)
 	if err != nil {
-		return c.WithUrls().WithError(fmt.Sprintf(
+		return c.WithError(fmt.Sprintf(
 			"error while fetching all keywords: %v", err),
 		).Render(KeywordsView, data)
 	}
@@ -96,5 +96,5 @@ func (r *Router) HandleAllKeywords(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = latestVersion.ID
 
-	return c.WithUrls().Render(KeywordsView, data)
+	return c.Render(KeywordsView, data)
 }

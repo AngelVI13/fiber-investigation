@@ -14,7 +14,7 @@ func (r *Router) HandleImportCsvGet(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Import keywords from CSV file"
 
-	return c.WithUrls().Render(ImportCsvView, data)
+	return c.Render(ImportCsvView, data)
 }
 
 func (r *Router) HandleImportCsvPost(c *Ctx) error {
