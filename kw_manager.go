@@ -15,13 +15,14 @@ import (
 //go:embed views/*
 var viewsfs embed.FS
 
-// Handler Wrapper to convert handler args to expected args by fiber
+// Handler Wrapper to convert handler args to expected args by fiber and
+// add url map to context.
 func Handler(f func(c *routes.Ctx) error) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		ctx := &routes.Ctx{
 			Ctx: c,
 		}
-		return f(ctx)
+		return f(ctx.WithUrls())
 	}
 }
 
@@ -43,6 +44,7 @@ func main() {
 	app.Static("/css", "./views/static/css")
 
 	router := routes.NewRouter(db)
+
 	app.Get(routes.IndexUrl, Handler(router.HandleIndex))
 
 	app.Get(routes.BusinessKwdsUrl, Handler(router.HandleBusinessKeywords))

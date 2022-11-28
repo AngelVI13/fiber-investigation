@@ -2,17 +2,17 @@
 <form method="POST">
   <div class="form-group">
     <label for="name">Name</label>
-    <input type="text" class="form-control" id="name" name="name">
+    <input type="text" class="form-control" id="name" name="name" value="{{.Name}}">
   </div>
   <br>
   <div class="form-group">
     <label for="args">Arguments</label>
-    <textarea class="form-control" id="args" rows="2" name="args"></textarea>
+    <textarea class="form-control" id="args" rows="2" name="args">{{.Args}}</textarea>
   </div>
   <br>
   <div class="form-group">
     <label for="docs">Documentation</label>
-    <textarea class="form-control" id="docs" rows="3" name="docs"></textarea>
+    <textarea class="form-control" id="docs" rows="3" name="docs">{{.Docs}}</textarea>
   </div>
   <br>
   <div>

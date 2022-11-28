@@ -40,7 +40,7 @@ func (r Router) HandleKeywordVersion(c *Ctx) error {
 	data["LatestVersion"] = latestVersion.ID
 	data["SelectedVersion"] = versionId
 
-	return c.WithUrls().Render(KeywordsView, data)
+	return c.Render(KeywordsView, data)
 }
 
 func (r *Router) HandleChangelog(c *Ctx) error {
@@ -51,11 +51,11 @@ func (r *Router) HandleChangelog(c *Ctx) error {
 
 	result := r.db.Find(&history)
 	if result.Error != nil {
-		return c.WithUrls().WithInfo(
+		return c.WithInfo(
 			"There is no versions to display",
 		).Render(ChangelogView, data)
 	}
 
 	data["History"] = history
-	return c.WithUrls().Render(ChangelogView, data)
+	return c.Render(ChangelogView, data)
 }
