@@ -38,13 +38,22 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 		strings.ContainsAny(argsValue, notAllowedCharset) ||
 		strings.ContainsAny(docsValue, notAllowedCharset) {
 		query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
+
+		createUrl, err := createUrl(kwType, query)
+		if err != nil {
+			return c.WithError(fmt.Sprintf(
+				`error while trying to redirect back to %s 
+                page after error: couldn't format url`, CreateKwdUrl),
+			).Redirect(IndexUrl)
+		}
+
 		return c.WithError(
 			fmt.Sprintf(
 				`Can't create new Keyword '%s'! Some of the fields below 
                 contains one or more not allowed characters(%s)`,
 				nameValue,
 				notAllowedCharset,
-			)).Redirect(fmt.Sprintf("%s/%s?%s", CreateKwdUrl, kwType, query))
+			)).Redirect(createUrl)
 	}
 
 	err := database.InsertNewKeyword(
@@ -56,9 +65,18 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	)
 	if err != nil {
 		query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
+
+		createUrl, err := createUrl(kwType, query)
+		if err != nil {
+			return c.WithError(fmt.Sprintf(
+				`error while trying to redirect back to %s 
+                page after error: couldn't format url`, CreateKwdUrl),
+			).Redirect(IndexUrl)
+		}
+
 		return c.WithError(fmt.Sprintf(
 			"Failed to create new Keyword '%s'!", nameValue),
-		).Redirect(fmt.Sprintf("%s/%s?%s", CreateKwdUrl, kwType, query))
+		).Redirect(createUrl)
 	}
 
 	// add message that kw was successfully added
@@ -78,4 +96,15 @@ func makeKeywordQuery(c *Ctx, name, args, docs string) string {
 
 func resetQueryString(c *Ctx) {
 	c.Request().URI().SetQueryString("")
+}
+
+func createUrl(kwType, query string) (string, error) {
+	url := "{{.Base}}/{{.KwType}}?{{.Query}}"
+
+	props := map[string]any{
+		"Base":   CreateKwdUrl,
+		"KwType": kwType,
+		"Query":  query,
+	}
+	return formatTemplate(url, props)
 }
