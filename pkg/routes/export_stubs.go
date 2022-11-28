@@ -24,18 +24,17 @@ func (r *Router) HandleExportStubsGet(c *Ctx) error {
 	data["PythonStub"] = PythonStub
 	data["RfStub"] = RfStub
 
-	return c.WithUrls().Render("views/export_stubs", data)
+	return c.Render(ExportStubsView, data)
 }
 
 func (r *Router) HandleExportStubsPost(c *Ctx) error {
 	stubType := c.FormValue("stub_type")
 
-	// TODO: abstract away database layer to something like r.db.Keywords()
-	var keywords []database.Keyword
-
-	result := r.db.Where("valid_to IS NULL").Find(&keywords)
-	if result.Error != nil {
-		return c.WithInfo("There are no keywords").Redirect(ExportStubsUrl)
+	keywords, err := database.AllKeywords(r.db)
+	if err != nil {
+		return c.WithError(fmt.Sprintf(
+			"error while fetching all keywords: %v", err),
+		).Redirect(ExportStubsUrl)
 	}
 
 	var stubGenerator StubGenerator

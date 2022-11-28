@@ -16,16 +16,15 @@ func (r *Router) HandleExportCsvGet(c *Ctx) error {
 	data["Title"] = "Export keywords as CSV"
 	data["ExportBtnTxt"] = "Download"
 
-	return c.WithUrls().Render("views/export_csv", data)
+	return c.Render(ExportCsvView, data)
 }
 
 func (r *Router) HandleExportCsvPost(c *Ctx) error {
-	// TODO: abstract away database layer to something like r.db.Keywords()
-	var keywords []database.Keyword
-
-	result := r.db.Where("valid_to IS NULL").Find(&keywords)
-	if result.Error != nil {
-		return c.WithError("There are no keywords").Redirect(ExportCsvUrl)
+	keywords, err := database.AllKeywords(r.db)
+	if err != nil {
+		return c.WithError(fmt.Sprintf(
+			"error while fetching all keywords: %v", err),
+		).Redirect(ExportCsvUrl)
 	}
 
 	filename, err := generateCsvFile("keywords.csv", keywords)
@@ -63,8 +62,6 @@ func generateCsv(keywords []database.Keyword) (string, error) {
 		keywordsCsv = append(keywordsCsv, &keywords[i].KeywordProps)
 	}
 
-	// TODO: What to do with the separator character?
-	// Can't use comma cause this might be used in the docs or args or impl
 	gocsv.SetCSVWriter(func(out io.Writer) *gocsv.SafeCSVWriter {
 		writer := csv.NewWriter(out)
 		writer.Comma = '|'

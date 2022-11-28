@@ -14,7 +14,7 @@ func (r *Router) HandleImportCsvGet(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Import keywords from CSV file"
 
-	return c.WithUrls().Render("views/import_csv", data)
+	return c.Render(ImportCsvView, data)
 }
 
 func (r *Router) HandleImportCsvPost(c *Ctx) error {
@@ -62,11 +62,10 @@ func insertKeywordsToDb(
 	keywordsToInsert []*database.KeywordProps,
 ) []error {
 	var (
-		allKeywords []database.Keyword
-		errors      []error
+		errors []error
 	)
 
-	_ = r.db.Where("valid_to IS NULL").Find(&allKeywords)
+	allKeywords, _ := database.AllKeywords(r.db)
 
 	var keywordMap = map[string]*database.Keyword{}
 	for i := range allKeywords {

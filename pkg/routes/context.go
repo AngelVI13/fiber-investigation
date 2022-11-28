@@ -14,38 +14,59 @@ const (
 	LevelDanger  MessageLevel = "danger"
 )
 
+// Ctx Wraps a Ctx in order to attach utility
+// functions (WithUrls, WithError, etc.)
+type Ctx struct {
+	*fiber.Ctx
+}
+
+func (c *Ctx) WithUrls() *Ctx {
+	data := fiber.Map{}
+
+	for k, v := range UrlMap {
+		data[k] = v
+	}
+
+	c.Bind(data)
+	return c
+}
+
 func (c *Ctx) FlashData() fiber.Map {
 	return flash.Get(c.Ctx)
 }
 
-func (c *Ctx) WithInfo(message string) *fiber.Ctx {
+func (c *Ctx) WithInfo(message string) *Ctx {
 	data := fiber.Map{
 		"Message": message,
 		"Level":   LevelPrimary,
 	}
-	return flash.WithInfo(c.Ctx, data)
+	flash.WithInfo(c.Ctx, data)
+	return c
 }
 
-func (c *Ctx) WithSuccess(message string) *fiber.Ctx {
+func (c *Ctx) WithSuccess(message string) *Ctx {
 	data := fiber.Map{
 		"Message": message,
 		"Level":   LevelSuccess,
 	}
-	return flash.WithSuccess(c.Ctx, data)
+	flash.WithSuccess(c.Ctx, data)
+	return c
 }
 
-func (c *Ctx) WithError(message string) *fiber.Ctx {
+func (c *Ctx) WithError(message string) *Ctx {
 	data := fiber.Map{
 		"Message": message,
 		"Level":   LevelDanger,
 	}
-	return flash.WithError(c.Ctx, data)
+	flash.WithError(c.Ctx, data)
+	return c
 }
 
-func (c *Ctx) WithWarning(message string) *fiber.Ctx {
+func (c *Ctx) WithWarning(message string) *Ctx {
 	data := fiber.Map{
 		"Message": message,
 		"Level":   LevelWarning,
 	}
-	return flash.WithWarn(c.Ctx, data)
+	flash.WithWarn(c.Ctx, data)
+	return c
 }
