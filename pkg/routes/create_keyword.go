@@ -2,7 +2,6 @@ package routes
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
@@ -32,7 +31,6 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
 	docsValue := c.FormValue("docs")
-	log.Println(nameValue, argsValue, docsValue)
 
 	notAllowedCharset := "|"
 
@@ -63,9 +61,14 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 		kwType,
 	)
 	if err != nil {
+		c.Request().URI().QueryArgs().Add("name", nameValue)
+		c.Request().URI().QueryArgs().Add("args", argsValue)
+		c.Request().URI().QueryArgs().Add("docs", docsValue)
+		query := c.Request().URI().QueryArgs().String()
+
 		return c.WithError(fmt.Sprintf(
-			"Failed to create new Keyword '%s'!", c.FormValue("name")),
-		).RedirectBack(IndexUrl)
+			"Failed to create new Keyword '%s'!", nameValue),
+		).Redirect(fmt.Sprintf("%s/%s?%s", CreateKwdUrl, kwType, query))
 	}
 
 	// add message that kw was successfully added
