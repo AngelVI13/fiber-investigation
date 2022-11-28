@@ -4,7 +4,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gookit/validate"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+)
+
+type RoleType string
+
+const (
+	RoleUser  RoleType = "user"
+	RoleAdmin RoleType = "admin"
 )
 
 type KeywordProps struct {
@@ -26,17 +35,61 @@ type Keyword struct {
 	KeywordProps
 }
 
-type User struct {
-	gorm.Model
-	Username string `gorm:"index;unique"`
-	Email    string `gorm:"index;unique"`
-	PassHash string
-	Salt     string
-	// role used to be enum. is gorm supports enums?
-	Role string `gorm:"default:User"`
-}
-
 type History struct {
 	gorm.Model
 	Change string `gorm:"not null"`
+}
+
+type User struct {
+	gorm.Model
+	Username       string   `json:"username" gorm:"username;index;unique" form:"username" validate:"required"`
+	Email          string   `json:"email" gorm:"email;index;unique" form:"email" validate:"required|email"`
+	Password       string   `json:"password" gorm:"password" form:"password" validate:"required"`
+	RepeatPassword string   `json:"repeat_password" form:"repeat_password" validate:"required|eq_field:password" gorm:"-"`
+	Role           RoleType `json:"role" form:"role" gorm:"default:user"`
+}
+
+// With Messages you can custom validator error messages.
+func (u User) Messages() map[string]string {
+	return validate.MS{
+		"required": "Field {field} is required!",
+		"email":    "Invalid email format",
+	}
+}
+
+func (u *User) HashPassword() error {
+	hash_bytes, err := bcrypt.GenerateFromPassword([]byte(u.Password), 14)
+	u.Password = string(hash_bytes)
+	return err
+}
+
+func (u User) CheckPasswordHash(password string) bool {
+
+    err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+    return err == nil
+}
+
+
+type LoginForm struct {
+	Username string `form:"username" validate:"required"`
+	Password string `form:"password" validate:"required"`
+}
+
+func (l LoginForm) Messages() map[string]string {
+	return validate.MS{
+		"required": "Field {field} is required!",
+	}
+}
+
+func (l LoginForm) CheckLogin(db *gorm.DB) (User, error){
+	user, err := GetUserByUsername(db, l.Username)
+	if err != nil {
+		return User{}, fmt.Errorf("username %s does not exist", l.Username)
+	}
+
+	if !user.CheckPasswordHash(l.Password){
+		return User{}, fmt.Errorf("incorrect password")
+	}
+	return user, nil
+
 }

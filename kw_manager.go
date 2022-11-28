@@ -8,6 +8,7 @@ import (
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/AngelVI13/fiber-investigation/pkg/routes"
+	"github.com/AngelVI13/fiber-investigation/pkg/session"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 )
@@ -31,6 +32,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't open database: %s - %v", db_path, err)
 	}
+
+	session.CreateSession()
 
 	engine := html.NewFileSystem(http.FS(viewsfs), ".html")
 
@@ -69,6 +72,15 @@ func main() {
 	app.Get(routes.ChangelogUrl, Handler(router.HandleChangelog))
 
 	app.Get("/:kwType/version/:id", Handler(router.HandleKeywordVersion))
+
+	app.Get(routes.RegisterUserUrl, Handler(router.HandleRegisterGet))
+	app.Post(routes.RegisterUserUrl, Handler(router.HandleRegisterPost))
+
+    app.Get(routes.LoginUrl, Handler(router.HandleLoginGet))
+    app.Post(routes.LoginUrl, Handler(router.HandleLoginPost))
+
+	app.Get(routes.LogoutUrl, Handler(router.HandleLoginGet))
+
 
 	log.Fatal(app.Listen(":3000"))
 }
