@@ -13,7 +13,7 @@ type RoleType string
 
 const (
 	RoleUser  RoleType = "user"
-	RoleAdmin RoleType = "admin"
+	RoleAdmin          = "admin"
 )
 
 type KeywordProps struct {
@@ -57,18 +57,18 @@ func (u User) Messages() map[string]string {
 	}
 }
 
-func (u *User) HashPassword() error {
-	hash_bytes, err := bcrypt.GenerateFromPassword([]byte(u.Password), 14)
-	u.Password = string(hash_bytes)
-	return err
+func HashPassword(password string) (string, error) {
+	hash_bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		return "", err
+	}
+	return string(hash_bytes), nil
 }
 
-func (u User) CheckPasswordHash(password string) bool {
-
-    err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-    return err == nil
+func CheckPasswordHash(hash string, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
-
 
 type LoginForm struct {
 	Username string `form:"username" validate:"required"`
@@ -81,14 +81,14 @@ func (l LoginForm) Messages() map[string]string {
 	}
 }
 
-func (l LoginForm) CheckLogin(db *gorm.DB) (User, error){
+func (l LoginForm) CheckLogin(db *gorm.DB) (*User, error) {
 	user, err := GetUserByUsername(db, l.Username)
 	if err != nil {
-		return User{}, fmt.Errorf("username %s does not exist", l.Username)
+		return nil, fmt.Errorf("username %s does not exist", l.Username)
 	}
 
-	if !user.CheckPasswordHash(l.Password){
-		return User{}, fmt.Errorf("incorrect password")
+	if !CheckPasswordHash(user.Password, l.Password) {
+		return nil, fmt.Errorf("incorrect password")
 	}
 	return user, nil
 

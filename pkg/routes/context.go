@@ -35,10 +35,12 @@ func (c *Ctx) WithUrls() *Ctx {
 func (c *Ctx) WithSession() *Ctx {
 	data := fiber.Map{}
 
-	user, _ := session.GetActiveUsername(c.Ctx)
-	data["IsConnected"] = session.IsUserActive(c.Ctx)
+	username, err := session.GetActiveUsername(c.Ctx)
+	isConnected := err == nil
+
+	data["IsConnected"] = isConnected	
+	data["ActiveUser"] = username
 	data["IsAdmin"] = session.IsAdmin(c.Ctx)
-	data["ActiveUser"] = user
 
 	c.Bind(data)
 	return c

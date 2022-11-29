@@ -7,15 +7,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Login(c *fiber.Ctx, user database.User) error {
+func Login(c *fiber.Ctx, user *database.User) error {
 	session, err := SessionStore.Get(c)
 
 	if err != nil {
 		return fmt.Errorf("failed to get session. Error %s", err.Error())
 	}
 
-	username, _ := GetActiveUsername(c)
-	if username != nil {
+	username, err := GetActiveUsername(c)
+	if err == nil {
 		return fmt.Errorf("username %s is already loged in", username)
 	}
 	session.Set(SessionUsername, user.Username)
@@ -42,18 +42,20 @@ func Logout(c *fiber.Ctx) error {
 	return nil
 }
 
-func GetActiveUsername(c *fiber.Ctx) (interface{}, error) {
+func GetActiveUsername(c *fiber.Ctx) (string, error) {
 	session, err := SessionStore.Get(c)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get session. Error %s", err.Error())
+		return "", fmt.Errorf("failed to get session. Error %s", err.Error())
 	}
 
-	return session.Get(SessionUsername), nil
-}
+	username := session.Get(SessionUsername)
 
-func IsUserActive(c *fiber.Ctx) bool {
-	username, _ := GetActiveUsername(c)
-	return username != nil
+	usernameStr, ok := username.(string)
+	if !ok {
+		return "", fmt.Errorf("session variable username is not a string")
+	}
+
+	return usernameStr, nil
 }
 
 func IsAdmin(c *fiber.Ctx) bool {

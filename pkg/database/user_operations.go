@@ -2,23 +2,23 @@ package database
 
 import "gorm.io/gorm"
 
-func GetUserByUsername(db *gorm.DB, username string) (User, error) {
+func GetUserByUsername(db *gorm.DB, username string) (*User, error) {
 	var user User
 
 	result := db.Where("username = ?", username).First(&user)
-	if result.Error != nil{
-		return User{}, result.Error
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	return user, nil
+	return &user, nil
 }
 
-func GetUserById(db *gorm.DB, id int) (User, error) {
+func GetUserById(db *gorm.DB, id int) (*User, error) {
 	var user User
 	result := db.First(&user, id)
-	if result.Error != nil{
-		return User{}, result.Error
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	return user, nil
+	return &user, nil
 }
