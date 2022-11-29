@@ -97,7 +97,7 @@ func (k KeywordProps) KwTypeValidator(value string) bool {
 func (k KeywordProps) Messages() map[string]string {
 	return validate.MS{
 		"Name.nameValidator": `Bad format of {field}. 
-        Expected alphanumeric symbols (incl. underscore). 
+        Expected alphanumeric symbols [2;120] (incl. underscore). 
         Leading and trailing spaces are not allowed. 
         Multiple word separating spaces are not allowed.`,
 
