@@ -33,30 +33,6 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	argsValue := c.FormValue("args")
 	docsValue := c.FormValue("docs")
 
-	/*
-			if strings.ContainsAny(nameValue, notAllowedCharset) ||
-				strings.ContainsAny(argsValue, notAllowedCharset) ||
-				strings.ContainsAny(docsValue, notAllowedCharset) {
-				query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
-
-				createUrl, err := createUrl(kwType, query)
-				if err != nil {
-					return c.WithError(fmt.Sprintf(
-						`error while trying to redirect back to %s
-		                page after error: couldn't format url`, CreateKwdUrl),
-					).Redirect(IndexUrl)
-				}
-
-				return c.WithError(
-					fmt.Sprintf(
-						`Can't create new Keyword '%s'! Some of the fields below
-		                contains one or more not allowed characters(%s)`,
-						nameValue,
-						notAllowedCharset,
-					)).Redirect(createUrl)
-			}
-	*/
-
 	kwErr := database.InsertNewKeyword(
 		r.db,
 		nameValue,
@@ -70,8 +46,9 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 		createUrl, err := createUrl(kwType, query)
 		if err != nil {
 			return c.WithError(fmt.Sprintf(
-				`error while trying to redirect back to %s 
-                page after error: couldn't format url`, CreateKwdUrl),
+				`%v 
+                :error while trying to redirect back to %s 
+                page after error: couldn't format url`, kwErr, CreateKwdUrl),
 			).Redirect(IndexUrl)
 		}
 
