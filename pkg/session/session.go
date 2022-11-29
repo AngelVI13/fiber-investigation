@@ -4,7 +4,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
-const SessionUser string = "username"
+const (
+	SessionUsername string = "username"
+	SessionRole     string = "role"
+)
 
 var SessionStore *session.Store
 

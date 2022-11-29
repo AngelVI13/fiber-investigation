@@ -23,7 +23,7 @@ func Handler(f func(c *routes.Ctx) error) func(c *fiber.Ctx) error {
 		ctx := &routes.Ctx{
 			Ctx: c,
 		}
-		return f(ctx.WithUrls())
+		return f(ctx.WithUrls().WithSession())
 	}
 }
 
@@ -41,7 +41,7 @@ func main() {
 	// Pass the engine to the Views
 	app := fiber.New(fiber.Config{
 		Views:       engine,
-		ViewsLayout: "views/layouts/main",
+		ViewsLayout: routes.MainLayoutView,
 	})
 
 	app.Static("/css", "./views/static/css")
@@ -78,11 +78,10 @@ func main() {
 	app.Get(routes.RegisterUserUrl, Handler(router.HandleRegisterGet))
 	app.Post(routes.RegisterUserUrl, Handler(router.HandleRegisterPost))
 
-    app.Get(routes.LoginUrl, Handler(router.HandleLoginGet))
-    app.Post(routes.LoginUrl, Handler(router.HandleLoginPost))
+	app.Get(routes.LoginUrl, Handler(router.HandleLoginGet))
+	app.Post(routes.LoginUrl, Handler(router.HandleLoginPost))
 
-	app.Get(routes.LogoutUrl, Handler(router.HandleLoginGet))
-
+	app.Get(routes.LogoutUrl, Handler(router.HandleLogout))
 
 	log.Fatal(app.Listen(":3000"))
 }

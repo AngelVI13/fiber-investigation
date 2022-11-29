@@ -14,12 +14,12 @@ func Login(c *fiber.Ctx, user database.User) error {
 		return fmt.Errorf("failed to get session. Error %s", err.Error())
 	}
 
-	username, _ := GetActiveUser(c)
+	username, _ := GetActiveUsername(c)
 	if username != nil {
 		return fmt.Errorf("username %s is already loged in", username)
 	}
-
-	session.Set(SessionUser, user.Username)
+	session.Set(SessionUsername, user.Username)
+	session.Set(SessionRole, string(user.Role))
 	err = session.Save()
 	if err != nil {
 		return fmt.Errorf("failed to add username '%s' to session. Error: %s", user.Username, err.Error())
@@ -42,11 +42,25 @@ func Logout(c *fiber.Ctx) error {
 	return nil
 }
 
-func GetActiveUser(c *fiber.Ctx) (interface{}, error) {
+func GetActiveUsername(c *fiber.Ctx) (interface{}, error) {
 	session, err := SessionStore.Get(c)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get session. Error %s", err.Error())
 	}
 
-	return session.Get(SessionUser), nil
+	return session.Get(SessionUsername), nil
+}
+
+func IsUserActive(c *fiber.Ctx) bool {
+	username, _ := GetActiveUsername(c)
+	return username != nil
+}
+
+func IsAdmin(c *fiber.Ctx) bool {
+	session, err := SessionStore.Get(c)
+	if err != nil {
+		return false
+	}
+	role := session.Get(SessionRole)
+	return role == string(database.RoleAdmin)
 }

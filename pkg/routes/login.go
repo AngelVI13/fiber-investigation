@@ -11,13 +11,13 @@ import (
 func (r *Router) HandleLoginGet(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Login"
-	return c.WithUrls().Render("views/login", data)
+	return c.Render(LoginView, data)
 }
 
 func (r *Router) HandleLoginPost(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Login"
-
+	
 	var login database.LoginForm
 	err := c.BodyParser(&login)
 
@@ -48,7 +48,7 @@ func (r *Router) HandleLoginPost(c *Ctx) error {
 		).RedirectBack(IndexUrl)
 	}
 
-	return c.WithUrls().WithSuccess(
+	return c.WithSuccess(
 		fmt.Sprintf("User %s successfully loged in", user.Username),
 	).Redirect(IndexUrl)
 }
@@ -56,7 +56,7 @@ func (r *Router) HandleLoginPost(c *Ctx) error {
 func (r *Router) HandleRegisterGet(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Register New User"
-	return c.WithUrls().Render("views/register", data)
+	return c.Render(RegisterView, data)
 }
 
 func (r *Router) HandleRegisterPost(c *Ctx) error {
@@ -94,7 +94,7 @@ func (r *Router) HandleRegisterPost(c *Ctx) error {
 
 	return c.WithSuccess(
 		fmt.Sprintf("User %s was added successfully", user.Username),
-	).RedirectBack(LoginUrl)
+	).Redirect(IndexUrl)
 }
 
 func (r *Router) HandleLogout(c *Ctx) error {
@@ -104,5 +104,5 @@ func (r *Router) HandleLogout(c *Ctx) error {
 		return c.WithError(fmt.Sprintf("failed to logout, error: %s", err.Error())).RedirectBack(IndexUrl)
 	}
 
-	return c.WithUrls().WithInfo("User logged out successfully").Redirect(LoginUrl)
+	return c.WithInfo("User logged out successfully").Redirect(LoginUrl)
 }
