@@ -59,6 +59,17 @@ func UpdateKeyword(db *gorm.DB, id int, name string, args string, docs string) e
 		return fmt.Errorf("failed to get keyword with given id: %d", id)
 	}
 
+	keywordProps := KeywordProps{
+		Name:   name,
+		Args:   args,
+		Docs:   docs,
+		KwType: keyword.KwType,
+	}
+	v := validate.Struct(&keywordProps)
+	if !v.Validate() {
+		return v.Errors.OneError()
+	}
+
 	now := time.Now()
 	keyword.ValidTo = &now
 
