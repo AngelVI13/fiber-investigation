@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/AngelVI13/fiber-investigation/pkg/session"
 	"github.com/gofiber/fiber/v2"
 	"github.com/sujit-baniya/flash"
 )
@@ -26,6 +27,20 @@ func (c *Ctx) WithUrls() *Ctx {
 	for k, v := range UrlMap {
 		data[k] = v
 	}
+
+	c.Bind(data)
+	return c
+}
+
+func (c *Ctx) WithSession() *Ctx {
+	data := fiber.Map{}
+
+	username, err := session.GetActiveUsername(c.Ctx)
+	isConnected := err == nil
+
+	data["IsConnected"] = isConnected	
+	data["ActiveUser"] = username
+	data["IsAdmin"] = session.IsAdmin(c.Ctx)
 
 	c.Bind(data)
 	return c
