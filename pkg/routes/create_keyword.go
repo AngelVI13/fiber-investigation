@@ -2,7 +2,6 @@ package routes
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 )
@@ -34,54 +33,33 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	argsValue := c.FormValue("args")
 	docsValue := c.FormValue("docs")
 
-	if strings.ContainsAny(nameValue, notAllowedCharset) ||
-		strings.ContainsAny(argsValue, notAllowedCharset) ||
-		strings.ContainsAny(docsValue, notAllowedCharset) {
-		query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
-
-		createUrl, err := createUrl(kwType, query)
-		if err != nil {
-			return c.WithError(fmt.Sprintf(
-				`error while trying to redirect back to %s 
-                page after error: couldn't format url`, CreateKwdUrl),
-			).Redirect(IndexUrl)
-		}
-
-		return c.WithError(
-			fmt.Sprintf(
-				`Can't create new Keyword '%s'! Some of the fields below 
-                contains one or more not allowed characters(%s)`,
-				nameValue,
-				notAllowedCharset,
-			)).Redirect(createUrl)
-	}
-
-	err := database.InsertNewKeyword(
+	kwErr := database.InsertNewKeyword(
 		r.db,
 		nameValue,
 		argsValue,
 		docsValue,
 		kwType,
 	)
-	if err != nil {
+	if kwErr != nil {
 		query := makeKeywordQuery(c, nameValue, argsValue, docsValue)
 
 		createUrl, err := createUrl(kwType, query)
 		if err != nil {
 			return c.WithError(fmt.Sprintf(
-				`error while trying to redirect back to %s 
-                page after error: couldn't format url`, CreateKwdUrl),
+				`%v 
+                :error while trying to redirect back to %s 
+                page after error: couldn't format url`, kwErr, CreateKwdUrl),
 			).Redirect(IndexUrl)
 		}
 
 		return c.WithError(fmt.Sprintf(
-			"Failed to create new Keyword '%s'!", nameValue),
+			"Failed to create new Keyword '%s'! %v", nameValue, kwErr),
 		).Redirect(createUrl)
 	}
 
 	// add message that kw was successfully added
 	return c.WithSuccess(fmt.Sprintf(
-		"Added new Keyword '%s'", c.FormValue("name")),
+		"Added new Keyword '%s'", nameValue),
 	).Redirect(redirectUrl)
 }
 

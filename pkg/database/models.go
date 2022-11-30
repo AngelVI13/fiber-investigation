@@ -17,13 +17,13 @@ const (
 )
 
 type KeywordProps struct {
-	ValidFrom      time.Time  `gorm:"autoCreateTime;not null" csv:"-"`
-	ValidTo        *time.Time `csv:"-"`
-	Name           string     `gorm:"not null" csv:"Name"`
-	Args           string     `gorm:"not null" csv:"Args"`
-	Docs           string     `gorm:"not null" csv:"Docs"`
-	KwType         string     `gorm:"not null" csv:"Type"`
-	Implementation string     `csv:"Implementation"`
+	ValidFrom      time.Time  `gorm:"autoCreateTime;not null" csv:"-" validate:"-"`
+	ValidTo        *time.Time `csv:"-" validate:"-"`
+	Name           string     `gorm:"not null" csv:"Name" validate:"nameValidator"`
+	Args           string     `gorm:"not null" csv:"Args" validate:"argsValidator"`
+	Docs           string     `gorm:"not null" csv:"Docs" validate:"docsValidator"`
+	KwType         string     `gorm:"not null" csv:"Type" validate:"kwTypeValidator"`
+	Implementation string     `csv:"Implementation" validate:"-"`
 }
 
 func (k KeywordProps) String() string {

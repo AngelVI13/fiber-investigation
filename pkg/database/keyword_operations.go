@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gookit/validate"
 	"gorm.io/gorm"
 )
 
@@ -15,6 +16,18 @@ const (
 
 //InsertNewKeyword insert new keyword to database. In case it already exist, raises error
 func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kwType string) error {
+	keywordProps := KeywordProps{
+		Name:   name,
+		Args:   args,
+		Docs:   docs,
+		KwType: kwType,
+	}
+
+	v := validate.Struct(&keywordProps)
+	if !v.Validate() {
+		return v.Errors.OneError()
+	}
+
 	// first check that there is no kw with this name. this looks like not optimal solution
 	var keyword Keyword
 
@@ -23,14 +36,11 @@ func InsertNewKeyword(db *gorm.DB, name string, args string, docs string, kwType
 	if kw.Error == nil {
 		return fmt.Errorf("keyword already exist")
 	}
+
 	keyword_record := Keyword{
-		KeywordProps: KeywordProps{
-			Name:   name,
-			Args:   args,
-			Docs:   docs,
-			KwType: kwType,
-		},
+		KeywordProps: keywordProps,
 	}
+
 	change := fmt.Sprintf("Add %s keyword '%s'", kwType, name)
 	history_record := History{Change: change}
 
@@ -47,6 +57,17 @@ func UpdateKeyword(db *gorm.DB, id int, name string, args string, docs string) e
 	result := db.First(&keyword, id)
 	if result.Error != nil {
 		return fmt.Errorf("failed to get keyword with given id: %d", id)
+	}
+
+	keywordProps := KeywordProps{
+		Name:   name,
+		Args:   args,
+		Docs:   docs,
+		KwType: keyword.KwType,
+	}
+	v := validate.Struct(&keywordProps)
+	if !v.Validate() {
+		return v.Errors.OneError()
 	}
 
 	now := time.Now()
