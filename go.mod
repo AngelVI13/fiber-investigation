@@ -8,6 +8,7 @@ require (
 	github.com/gofiber/template v1.7.1
 	github.com/gookit/validate v1.4.5
 	github.com/sujit-baniya/flash v0.1.7
+	golang.org/x/crypto v0.3.0
 	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.1
 )
@@ -27,6 +28,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.40.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
-	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 )

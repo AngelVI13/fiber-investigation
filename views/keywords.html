@@ -10,14 +10,18 @@
             <th>Arguments</th>
             <th>Documentation</th>
             <th>Implementation</th>
-            <th>
-                Actions
-                {{if ne .KwType "all"}}
-                <a class="action-icon text-decoration-none" href="/create/{{.KwType}}" title="Create">
-                    <i class="bi bi-plus-circle-fill"></i>
-                </a>
+            {{if and $.IsAdmin $.IsConnected}}
+                {{if eq $.LatestVersion $.SelectedVersion}}
+                    <th>
+                        Actions
+                        {{if ne .KwType "all"}}
+                        <a class="action-icon text-decoration-none" href="/create/{{.KwType}}" title="Create">
+                            <i class="bi bi-plus-circle-fill"></i>
+                        </a>
+                        {{end}}
+                    </th>
                 {{end}}
-            </th>
+            {{end}}
         </tr>
     </thead>
     {{ range .Keywords}}
@@ -27,15 +31,18 @@
         <td>{{ .Args }}</td>
         <td>{{ .Docs }}</td>
         <td>{{ .Implementation }}</td>
-        <td>
-            <a class="action-icon text-decoration-none" href="/edit/{{.ID}}/{{.KwType}}" title="Edit">
-                <i class="bi bi-pencil-fill"></i>
-            </a>
-            <a class="action-icon text-decoration-none" href="/delete/{{.ID}}/{{.KwType}}" title="Delete">
-                <i class="bi bi-trash-fill"></i>
-            </a>
-        </td>
-
+        {{if and $.IsAdmin $.IsConnected}}
+            {{if eq $.LatestVersion $.SelectedVersion}}
+                <td>
+                    <a class="action-icon text-decoration-none" href="/edit/{{.ID}}/{{.KwType}}" title="Edit">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <a class="action-icon text-decoration-none" href="/delete/{{.ID}}/{{.KwType}}" title="Delete">
+                        <i class="bi bi-trash-fill"></i>
+                    </a>
+                </td>
+            {{end}}
+        {{end}}
     </tr>
     {{ end}}
 </table>
