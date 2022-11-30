@@ -1,12 +1,15 @@
 package routes
 
 import (
+	"net/http/httptest"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
+	"github.com/AngelVI13/fiber-investigation/pkg/dbtest"
+	"github.com/AngelVI13/fiber-investigation/pkg/session"
 )
 
 func TestGenerateCsvFile(t *testing.T) {
@@ -66,5 +69,19 @@ My keyword name|arg1='a', arg2='b'|Very important docstring||
 			strconv.Quote(expCsv),
 			strconv.Quote(generatedCsv),
 		)
+	}
+}
+
+func TestFiberApp(t *testing.T) {
+	app, db := dbtest.NewFiberTest(t)
+	router := NewRouter(db)
+	session.CreateSession()
+
+	app.Get(ExportCsvUrl, Handler(router.HandleExportCsvGet))
+
+	r := httptest.NewRequest("GET", ExportCsvUrl, nil)
+	resp, _ := app.Test(r, -1)
+	if resp.StatusCode != 200 {
+		t.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 }
