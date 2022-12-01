@@ -58,9 +58,8 @@ func CleanupTestDb(testDb *gorm.DB, dbPath string) func() {
 	}
 }
 
-// NewTestFiberApp Create a fiber app & db for testing. Setup teardown to
-// remove test db file.
-func NewTestFiberApp(t *testing.T) (*fiber.App, *gorm.DB) {
+// NewTestFiberApp Create a fiber app for testing
+func NewTestFiberApp(t *testing.T) *fiber.App {
 	// NOTE: need to provide path to root dir so 'views' folder can be accessed
 	// for testing endpoints
 	path := "../../"
@@ -77,6 +76,12 @@ func NewTestFiberApp(t *testing.T) (*fiber.App, *gorm.DB) {
 		ViewsLayout: mainLayoutView,
 	})
 
+	return app
+}
+
+// NewTestDb Create a db for testing. Setup teardown to
+// remove test db file.
+func NewTestDb(t *testing.T) *gorm.DB {
 	dbPath := TestDBFileName
 	testDb, err := PrepareTestDb(dbPath)
 	if err != nil {
@@ -84,6 +89,5 @@ func NewTestFiberApp(t *testing.T) (*fiber.App, *gorm.DB) {
 	}
 
 	t.Cleanup(CleanupTestDb(testDb, dbPath))
-
-	return app, testDb
+	return testDb
 }

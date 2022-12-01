@@ -10,19 +10,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type testHandler func(app *fiber.App, router *Router, t *testing.T)
+type testHandler func(app *fiber.App, t *testing.T)
+
+func NewTestRouter(t *testing.T) *Router {
+	db := dbtest.NewTestDb(t)
+	return NewRouter(db)
+}
 
 func TestRouter(t *testing.T) {
-	app, db := dbtest.NewTestFiberApp(t)
-	// TODO: create a new DB&router for each separate test so that api tests
-	// don't influence eachother
-	router := NewRouter(db)
+	app := dbtest.NewTestFiberApp(t)
 	session.CreateSession()
 
 	// closure to provide app and router to testing func
 	withArgs := func(h testHandler) func(t *testing.T) {
 		return func(t *testing.T) {
-			h(app, router, t)
+			h(app, t)
 		}
 	}
 
@@ -32,7 +34,8 @@ func TestRouter(t *testing.T) {
 	t.Run(ExportStubsUrl, withArgs(VerifyExportStubsGet))
 }
 
-func VerifyExportCsvGet(app *fiber.App, router *Router, t *testing.T) {
+func VerifyExportCsvGet(app *fiber.App, t *testing.T) {
+	router := NewTestRouter(t)
 	app.Get(ExportCsvUrl, Handler(router.HandleExportCsvGet))
 
 	r := httptest.NewRequest("GET", ExportCsvUrl, http.NoBody)
@@ -44,7 +47,8 @@ func VerifyExportCsvGet(app *fiber.App, router *Router, t *testing.T) {
 	}
 }
 
-func VerifyExportStubsGet(app *fiber.App, router *Router, t *testing.T) {
+func VerifyExportStubsGet(app *fiber.App, t *testing.T) {
+	router := NewTestRouter(t)
 	app.Get(ExportStubsUrl, Handler(router.HandleExportStubsGet))
 
 	r := httptest.NewRequest("GET", ExportStubsUrl, http.NoBody)
