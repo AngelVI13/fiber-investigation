@@ -15,6 +15,11 @@ const (
 	RegisterUserUrl  = "/register_user"
 	LoginUrl         = "/login"
 	LogoutUrl        = "/logout"
+	AdminPanelUrl    = "/admin"
+	UserPanelUrl     = "/user"
+	DeleteUserUrl    = "/delete_user"
+	EditUserUrl      = "/edit_user"
+	AddUserUrl       = "/add_user"
 )
 
 var UrlMap = map[string]string{
@@ -32,6 +37,11 @@ var UrlMap = map[string]string{
 	"RegisterUserUrl":  RegisterUserUrl,
 	"LoginUrl":         LoginUrl,
 	"LogoutUrl":        LogoutUrl,
+	"AdminPanelUrl":    AdminPanelUrl,
+	"UserPanelUrl":     UserPanelUrl,
+	"DeleteUserUrl":    DeleteUserUrl,
+	"EditUserUrl":      EditUserUrl,
+	"AddUserUrl":       AddUserUrl,
 }
 
 const (
@@ -46,4 +56,8 @@ const (
 	ExportStubsView = "views/export_stubs"
 	RegisterView    = "views/register"
 	LoginView       = "views/login"
+	AdminPanelView  = "views/admin_panel"
+	UserPanelView   = "views/user_panel"
+	EditUserView    = "views/edit_user"
+	AddUserView     = "views/register"
 )
