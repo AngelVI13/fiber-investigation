@@ -2,11 +2,9 @@ package dbtest
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/gofiber/fiber/v2"
@@ -60,8 +58,9 @@ func CleanupTestDb(testDb *gorm.DB, dbPath string) func() {
 	}
 }
 
-func NewFiberTest(t *testing.T) (*fiber.App, *gorm.DB) {
-	n1 := time.Now()
+// NewTestFiberApp Create a fiber app & db for testing. Setup teardown to
+// remove test db file.
+func NewTestFiberApp(t *testing.T) (*fiber.App, *gorm.DB) {
 	// NOTE: need to provide path to root dir so 'views' folder can be accessed
 	// for testing endpoints
 	path := "../../"
@@ -77,8 +76,6 @@ func NewFiberTest(t *testing.T) (*fiber.App, *gorm.DB) {
 		Views:       engine,
 		ViewsLayout: mainLayoutView,
 	})
-	log.Printf("APP: %v", time.Since(n1))
-	n2 := time.Now()
 
 	dbPath := TestDBFileName
 	testDb, err := PrepareTestDb(dbPath)
@@ -87,8 +84,6 @@ func NewFiberTest(t *testing.T) (*fiber.App, *gorm.DB) {
 	}
 
 	t.Cleanup(CleanupTestDb(testDb, dbPath))
-
-	log.Printf("DB %v", time.Since(n2))
 
 	return app, testDb
 }
