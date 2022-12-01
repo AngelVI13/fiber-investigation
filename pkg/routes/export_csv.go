@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -12,11 +13,15 @@ import (
 )
 
 func (r *Router) HandleExportCsvGet(c *Ctx) error {
+	log.Println("inside get")
 	data := c.FlashData()
 	data["Title"] = "Export keywords as CSV"
 	data["ExportBtnTxt"] = "Download"
+	log.Println("flashdata")
 
-	return c.Render(ExportCsvView, data)
+	err := c.Render(ExportCsvView, data)
+	log.Printf("after render: %v", err)
+	return err
 }
 
 func (r *Router) HandleExportCsvPost(c *Ctx) error {

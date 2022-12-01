@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"log"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"strconv"
@@ -72,16 +74,25 @@ My keyword name|arg1='a', arg2='b'|Very important docstring||
 	}
 }
 
-func TestFiberApp(t *testing.T) {
+func TestExportCsvGet(t *testing.T) {
+	// TODO: does it make sense to create a full db file just for testing purposes??
+	n1 := time.Now()
 	app, db := dbtest.NewFiberTest(t)
 	router := NewRouter(db)
 	session.CreateSession()
 
+	log.Printf("APP+DB %v", time.Since(n1))
+	n2 := time.Now()
+
 	app.Get(ExportCsvUrl, Handler(router.HandleExportCsvGet))
 
-	r := httptest.NewRequest("GET", ExportCsvUrl, nil)
+	r := httptest.NewRequest("GET", ExportCsvUrl, http.NoBody)
 	resp, _ := app.Test(r, -1)
-	if resp.StatusCode != 200 {
+
+	log.Println(resp)
+	log.Printf("app.Test %v", time.Since(n2))
+
+	if resp.StatusCode != 201 {
 		t.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 }
