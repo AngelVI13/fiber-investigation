@@ -7,20 +7,20 @@ import (
 	"testing"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
-	"github.com/AngelVI13/fiber-investigation/pkg/dbtest"
 	"github.com/AngelVI13/fiber-investigation/pkg/session"
+	"github.com/AngelVI13/fiber-investigation/pkg/testutil"
 	"github.com/gofiber/fiber/v2"
 )
 
 type testHandler func(app *fiber.App, t *testing.T)
 
 func NewTestRouter(t *testing.T) *Router {
-	db := dbtest.NewTestDb(t)
+	db := testutil.NewTestDb(t)
 	return NewRouter(db)
 }
 
 func TestRouter(t *testing.T) {
-	app := dbtest.NewTestFiberApp(t)
+	app := testutil.NewTestFiberApp(t)
 	session.CreateSession()
 
 	// closure to provide app and router to testing func
