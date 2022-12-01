@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -43,16 +42,13 @@ func main() {
 	app.Get(routes.TechnicalKwdsUrl, routes.Handler(router.HandleTechnicalKeywords))
 	app.Get(routes.AllKwdsUrl, routes.Handler(router.HandleAllKeywords))
 
-	createKwUrl := fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl)
-	app.Get(createKwUrl, routes.Handler(router.HandleCreateKeywordGet))
-	app.Post(createKwUrl, routes.Handler(router.HandleCreateKeywordPost))
+	app.Get(routes.CreateKwdUrlFull, routes.Handler(router.HandleCreateKeywordGet))
+	app.Post(routes.CreateKwdUrlFull, routes.Handler(router.HandleCreateKeywordPost))
 
-	editKwUrl := fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl)
-	app.Get(editKwUrl, routes.Handler(router.HandleEditKeywordGet))
-	app.Post(editKwUrl, routes.Handler(router.HandleEditKeywordPost))
+	app.Get(routes.EditKwdUrlFull, routes.Handler(router.HandleEditKeywordGet))
+	app.Post(routes.EditKwdUrlFull, routes.Handler(router.HandleEditKeywordPost))
 
-	deleteKwUrl := fmt.Sprintf("%s/:id/:kw_type", routes.DeleteKwdUrl)
-	app.Get(deleteKwUrl, routes.Handler(router.HandleDeleteKeyword))
+	app.Get(routes.DeleteKwdUrlFull, routes.Handler(router.HandleDeleteKeyword))
 
 	app.Get(routes.ImportCsvUrl, routes.Handler(router.HandleImportCsvGet))
 	app.Post(routes.ImportCsvUrl, routes.Handler(router.HandleImportCsvPost))

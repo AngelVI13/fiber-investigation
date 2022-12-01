@@ -1,5 +1,7 @@
 package routes
 
+import "fmt"
+
 const (
 	IndexUrl         = "/"
 	BusinessKwdsUrl  = "/business_keywords"
@@ -15,6 +17,12 @@ const (
 	RegisterUserUrl  = "/register_user"
 	LoginUrl         = "/login"
 	LogoutUrl        = "/logout"
+)
+
+var (
+	CreateKwdUrlFull = fmt.Sprintf("%s/:kw_type", CreateKwdUrl)
+	EditKwdUrlFull   = fmt.Sprintf("%s/:id/:kw_type", EditKwdUrl)
+	DeleteKwdUrlFull = fmt.Sprintf("%s/:id/:kw_type", DeleteKwdUrl)
 )
 
 var UrlMap = map[string]string{

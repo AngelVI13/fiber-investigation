@@ -2,6 +2,8 @@ package routes
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 )
@@ -22,6 +24,7 @@ func (r *Router) HandleCreateKeywordGet(c *Ctx) error {
 
 func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	kwType := c.Params("kw_type")
+	log.Println(kwType)
 
 	redirectUrl := RouteForKeywordType(kwType)
 
@@ -32,6 +35,7 @@ func (r *Router) HandleCreateKeywordPost(c *Ctx) error {
 	nameValue := c.FormValue("name")
 	argsValue := c.FormValue("args")
 	docsValue := c.FormValue("docs")
+	log.Println(strconv.Quote(nameValue), strconv.Quote(argsValue), strconv.Quote(docsValue))
 
 	kwErr := database.InsertNewKeyword(
 		r.db,
