@@ -10,11 +10,10 @@ func (r *Router) HandleAdmin(c *Ctx) error {
 	data := c.FlashData()
 	data["Title"] = "Admin Panel"
 
-	var users []database.User
-	result := r.db.Find(&users)
-	if result.Error != nil {
+	users, err := database.AllUsers(r.db)
+	if err != nil {
 		return c.WithError(fmt.Sprintf(
-			"Failed to get users information from database, error: %s", result.Error,
+			"Failed to get users information from database, error: %s", err,
 		)).RedirectBack(IndexUrl)
 	}
 	data["Users"] = users
@@ -52,7 +51,7 @@ func (r *Router) HandleEditUserGet(c *Ctx) error {
 	data["Username"] = user.Username
 	data["Email"] = user.Email
 	data["Role"] = user.Role
-	data["Roles"] = [2]database.RoleType{database.RoleUser, database.RoleAdmin}
+	data["Roles"] = [...]database.RoleType{database.RoleUser, database.RoleAdmin}
 
 	return c.Render(EditUserView, data)
 }
@@ -67,7 +66,7 @@ func (r *Router) HandleEditUserPost(c *Ctx) error {
 		).RedirectBack(AdminPanelUrl)
 	}
 
-	var userUpdated bool = false
+	userUpdated := false
 
 	usernameValue := c.FormValue("username")
 	if user.Username != usernameValue {
@@ -101,7 +100,7 @@ func (r *Router) HandleEditUserPost(c *Ctx) error {
 
 	if !userUpdated {
 		return c.WithWarning(fmt.Sprintf(
-			"No updated for user '%s' were applied", user.Username),
+			"No updates for user '%s' were applied", user.Username),
 		).RedirectBack(AdminPanelUrl)
 	}
 

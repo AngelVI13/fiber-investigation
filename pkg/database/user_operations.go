@@ -18,3 +18,10 @@ func DeleteUser(db *gorm.DB, username string) error {
 	result := db.Where("username = ?", username).Delete(&user)
 	return result.Error
 }
+
+func AllUsers(db *gorm.DB) ([]User, error) {
+	var users []User
+
+	result := db.Find(&users)
+	return users, result.Error
+}

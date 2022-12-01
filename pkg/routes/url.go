@@ -57,7 +57,7 @@ const (
 	RegisterView    = "views/register"
 	LoginView       = "views/login"
 	AdminPanelView  = "views/admin_panel"
-	UserPanelView  = "views/user_panel"
+	UserPanelView   = "views/user_panel"
 	EditUserView    = "views/edit_user"
 	AddUserView     = "views/register"
 )
