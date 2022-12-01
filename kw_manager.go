@@ -83,5 +83,17 @@ func main() {
 
 	app.Get(routes.LogoutUrl, Handler(router.HandleLogout))
 
+	app.Get(routes.AdminPanelUrl, Handler(router.HandleAdmin))
+
+	app.Get(routes.UserPanelUrl, Handler(router.HandleUserPanelGet))
+	app.Post(routes.UserPanelUrl, Handler(router.HandleUserPanelPost))
+
+	app.Get(fmt.Sprintf("%s/:username", routes.DeleteUserUrl), Handler(router.HandleDeleteUser))
+	app.Get(fmt.Sprintf("%s/:username", routes.EditUserUrl), Handler(router.HandleEditUserGet))
+	app.Post(fmt.Sprintf("%s/:username", routes.EditUserUrl), Handler(router.HandleEditUserPost))
+
+	app.Get(routes.AddUserUrl, Handler(router.HandleAddUserGet))
+	app.Post(routes.AddUserUrl, Handler(router.HandleAddUserPost))
+
 	log.Fatal(app.Listen(":3000"))
 }

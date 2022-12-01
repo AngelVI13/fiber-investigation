@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gookit/validate"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -41,12 +42,16 @@ type History struct {
 }
 
 type User struct {
-	gorm.Model
-	Username       string   `json:"username" gorm:"username;index;unique" form:"username" validate:"required"`
-	Email          string   `json:"email" gorm:"email;index;unique" form:"email" validate:"required|email"`
-	Password       string   `json:"password" gorm:"password" form:"password" validate:"required"`
-	RepeatPassword string   `json:"repeat_password" form:"repeat_password" validate:"required|eq_field:password" gorm:"-"`
-	Role           RoleType `json:"role" form:"role" gorm:"default:user"`
+	ID             uuid.UUID `json:"id" gorm:"primarykey" form:"id" validate:"-"`
+	Username       string    `json:"username" gorm:"username;unique" form:"username" validate:"required"`
+	Email          string    `json:"email" gorm:"email;unique" form:"email" validate:"required|email"`
+	Password       string    `json:"password" gorm:"password" form:"password" validate:"required"`
+	RepeatPassword string    `json:"repeat_password" form:"repeat_password" validate:"required|eq_field:password" gorm:"-"`
+	Role           RoleType  `json:"role" form:"role" gorm:"default:user"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 // With Messages you can custom validator error messages.

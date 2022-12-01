@@ -13,12 +13,8 @@ func GetUserByUsername(db *gorm.DB, username string) (*User, error) {
 	return &user, nil
 }
 
-func GetUserById(db *gorm.DB, id int) (*User, error) {
+func DeleteUser(db *gorm.DB, username string) error {
 	var user User
-	result := db.First(&user, id)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	return &user, nil
+	result := db.Where("username = ?", username).Delete(&user)
+	return result.Error
 }
