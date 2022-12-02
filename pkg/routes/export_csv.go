@@ -16,8 +16,7 @@ func (r *Router) HandleExportCsvGet(c *Ctx) error {
 	data["Title"] = "Export keywords as CSV"
 	data["ExportBtnTxt"] = "Download"
 
-	err := c.Render(ExportCsvView, data)
-	return err
+	return c.Render(ExportCsvView, data)
 }
 
 func (r *Router) HandleExportCsvPost(c *Ctx) error {
