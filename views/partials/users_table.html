@@ -1,0 +1,33 @@
+<table id="data" class="table table-striped">
+    <caption>Users</caption>
+    <thead class="table-dark">
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Created</th>
+            <th>
+                Actions
+                <a class="action-icon text-decoration-none" href="{{.AddUserUrl}}" title="Add">
+                    <i class="bi bi-plus-circle-fill"></i>
+                </a>
+            </th>
+        </tr>
+    </thead>
+    {{ range .Users}}
+    <tr>
+        <td>{{ .Username }}</td>
+        <td>{{ .Email }}</td>
+        <td>{{ .Role }}</td>
+        <td>{{ .CreatedAt }}</td>
+        <td>
+            <a class="action-icon text-decoration-none" href="{{$.EditUserUrl}}/{{.Username}}" title="Edit">
+                <i class="bi bi-pencil-fill"></i>
+            </a>
+            <a class="action-icon text-decoration-none" href="{{$.DeleteUserUrl}}/{{.Username}}" title="Delete">
+                <i class="bi bi-trash-fill"></i>
+            </a>
+        </td>
+    </tr>
+    {{ end}}
+</table>

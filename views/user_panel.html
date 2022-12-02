@@ -1,0 +1,38 @@
+<h2>Hello, {{.Username}}!</h2>
+<div class="form-group row">
+    <label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
+    <div class="col-sm-2">
+        <input type="text" readonly class="form-control-plaintext" id="staticEmail" value="{{.Email}}">
+    </div>
+</div>
+<div class="form-group row">
+    <label for="staticEmail" class="col-sm-2 col-form-label">Role</label>
+    <div class="col-sm-2">
+        <input type="text" readonly class="form-control-plaintext" id="staticRole" value="{{.Role}}">
+    </div>
+</div>
+<br>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="new_password">Old Password</label>
+        <input class="form-control" id="old_password" name="old_password" placeholder="**********" type="password"
+            value="" required>
+    </div>
+    <br>
+    <div class="form-group">
+        <label for="new_password">New Password</label>
+        <input class="form-control" id="new_password" name="new_password" placeholder="**********" type="password"
+            value="" required>
+    </div>
+    <br>
+    <div class="form-group">
+        <label for="new_password">Repeat Password</label>
+        <input class="form-control" id="repeat_password" name="repeat_password" placeholder="**********" type="password"
+            value="" required>
+    </div>
+    <br>
+    <div>
+        <button type="submit" class="btn btn-primary">Change Password</button>
+    </div>
+</form>
