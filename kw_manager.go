@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -71,20 +72,20 @@ func main() {
 
 	app.Get(routes.LogoutUrl, routes.Handler(router.HandleLogout))
 
-	app.Get(routes.AdminPanelUrl, Handler(router.HandleAdmin))
+	app.Get(routes.AdminPanelUrl, routes.Handler(router.HandleAdmin))
 
-	app.Get(routes.UserPanelUrl, Handler(router.HandleUserPanelGet))
-	app.Post(routes.UserPanelUrl, Handler(router.HandleUserPanelPost))
+	app.Get(routes.UserPanelUrl, routes.Handler(router.HandleUserPanelGet))
+	app.Post(routes.UserPanelUrl, routes.Handler(router.HandleUserPanelPost))
 
 	deleteUserUrl := fmt.Sprintf("%s/:username", routes.DeleteUserUrl)
 	editUserUrl := fmt.Sprintf("%s/:username", routes.EditUserUrl)
-	
-	app.Get(deleteUserUrl, Handler(router.HandleDeleteUser))
-	app.Get(editUserUrl, Handler(router.HandleEditUserGet))
-	app.Post(editUserUrl, Handler(router.HandleEditUserPost))
 
-	app.Get(routes.AddUserUrl, Handler(router.HandleAddUserGet))
-	app.Post(routes.AddUserUrl, Handler(router.HandleAddUserPost))
+	app.Get(deleteUserUrl, routes.Handler(router.HandleDeleteUser))
+	app.Get(editUserUrl, routes.Handler(router.HandleEditUserGet))
+	app.Post(editUserUrl, routes.Handler(router.HandleEditUserPost))
+
+	app.Get(routes.AddUserUrl, routes.Handler(router.HandleAddUserGet))
+	app.Post(routes.AddUserUrl, routes.Handler(router.HandleAddUserPost))
 
 	log.Fatal(app.Listen(":3000"))
 }
