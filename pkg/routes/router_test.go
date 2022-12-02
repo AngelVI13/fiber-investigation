@@ -3,6 +3,8 @@ package routes
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,11 +16,43 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+const (
+	FiberCookieName = "fiber-app-flash"
+)
+
 type testHandler func(app *fiber.App, t *testing.T)
 
 func NewTestRouter(t *testing.T) *Router {
 	db := testutil.NewTestDb(t)
 	return NewRouter(db)
+}
+
+func MultipartForm(data map[string]string) (
+	body *bytes.Buffer,
+	formType string,
+	err error,
+) {
+	// New multipart writer.
+	body = &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	defer writer.Close()
+
+	for k, v := range data {
+		fw, err := writer.CreateFormField(k)
+		if err != nil {
+			return nil, "", fmt.Errorf(
+				"failed to create form field %s: %v", k, err,
+			)
+		}
+		_, err = io.Copy(fw, strings.NewReader(v))
+		if err != nil {
+			return nil, "", fmt.Errorf(
+				"failed to add value %s to form field %s: %v", v, k, err,
+			)
+		}
+	}
+
+	return body, writer.FormDataContentType(), nil
 }
 
 func TestRouter(t *testing.T) {
@@ -88,9 +122,18 @@ func VerifyCreateKeywordPost(app *fiber.App, t *testing.T) {
 		)
 	}
 
-	var jsonStr = []byte(`{"name": "New+keyword", "args": "arg1=5,+arg2=10", "docs": "New+keywords+doc"}`)
+	body, formType, err := MultipartForm(map[string]string{
+		"name": "New keyword",
+		"args": "arg1=5, arg2=10",
+		"docs": "New keyword docs.",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	url := fmt.Sprintf("%s/%s", CreateKwdUrl, database.Technical)
-	r := httptest.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonStr))
+	r := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(body.Bytes()))
+	r.Header.Set("Content-Type", formType)
 
 	resp, err := app.Test(r, -1)
 	if err != nil {
@@ -101,9 +144,15 @@ func VerifyCreateKeywordPost(app *fiber.App, t *testing.T) {
 		t.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 
-	// TODO: Check len of cookies and cookie name matches
 	cookies := resp.Cookies()
+	if len(cookies) < 1 {
+		t.Errorf("unexpected number of cookies: wanted 1 but got %d", len(cookies))
+	}
+
 	cookie := cookies[0]
+	if cookie.Name != FiberCookieName {
+		t.Errorf("unexpected cookied name: %s", cookie.Name)
+	}
 
 	if !strings.Contains(cookie.Value, "success") {
 		t.Fatalf("expected success to be flashed on screen but got: %s", cookie.Value)
