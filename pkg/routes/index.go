@@ -14,13 +14,13 @@ func (r *Router) HandleIndex(c *Ctx) error {
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"error while fetching business keywords: %v", err),
-		).Render(KeywordsView, data)
+		).Render(IndexView, data)
 	}
 	technicalkwds, err := database.TechnicalKeywords(r.db)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"error while fetching business keywords: %v", err),
-		).Render(KeywordsView, data)
+		).Render(IndexView, data)
 	}
 
 	data["CountBusiness"] = len(businesskwds)

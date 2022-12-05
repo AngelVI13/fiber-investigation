@@ -66,25 +66,20 @@ func IsAdmin(c *fiber.Ctx) bool {
 func CurrentUserRole(c *fiber.Ctx) database.RoleType {
 	session, err := SessionStore.Get(c)
 	if err != nil {
-		return database.RoleAnonimous
+		return database.RoleAnonymous
 	}
 
 	role := session.Get(SessionRole)
 	if role == nil {
-		return database.RoleAnonimous
+		return database.RoleAnonymous
 	}
 
-	availableRoles := [...]database.RoleType{
-		database.RoleUser, 
-		database.RoleAdmin, 
-		database.RoleAnonimous,
-	}
-	for _, roleType := range availableRoles {
+	for _, roleType := range database.AllRoles() {
 		if role == string(roleType) {
 			return roleType
 		}
 	}
-	return database.RoleAnonimous
+	return database.RoleAnonymous
 }
 
 func RolesRequires(roles ...database.RoleType) fiber.Handler {
