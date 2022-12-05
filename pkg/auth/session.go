@@ -1,4 +1,4 @@
-package session
+package auth
 
 import (
 	"github.com/gofiber/fiber/v2/middleware/session"

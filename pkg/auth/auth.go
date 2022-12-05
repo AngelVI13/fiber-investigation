@@ -1,4 +1,4 @@
-package session
+package auth
 
 import (
 	"fmt"
@@ -59,10 +59,42 @@ func GetActiveUsername(c *fiber.Ctx) (string, error) {
 }
 
 func IsAdmin(c *fiber.Ctx) bool {
+	role := CurrentUserRole(c)
+	return role == database.RoleAdmin
+}
+
+func CurrentUserRole(c *fiber.Ctx) database.RoleType {
 	session, err := SessionStore.Get(c)
 	if err != nil {
-		return false
+		return database.RoleAnonymous
 	}
+
 	role := session.Get(SessionRole)
-	return role == string(database.RoleAdmin)
+	if role == nil {
+		return database.RoleAnonymous
+	}
+
+	for _, roleType := range database.AllRoles() {
+		if role == string(roleType) {
+			return roleType
+		}
+	}
+	return database.RoleAnonymous
+}
+
+func RolesRequires(roles ...database.RoleType) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		if len(roles) == 0 {
+			return c.Next()
+		}
+
+		currentRole := CurrentUserRole(c)
+
+		for _, role := range roles {
+			if role == currentRole {
+				return c.Next()
+			}
+		}
+		return c.SendStatus(401)
+	}
 }

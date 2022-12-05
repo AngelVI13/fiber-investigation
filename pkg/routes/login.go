@@ -3,13 +3,13 @@ package routes
 import (
 	"fmt"
 
+	"github.com/AngelVI13/fiber-investigation/pkg/auth"
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
-	"github.com/AngelVI13/fiber-investigation/pkg/session"
 	"github.com/gookit/validate"
 )
 
 func (r *Router) HandleLoginGet(c *Ctx) error {
-	_, err := session.GetActiveUsername(c.Ctx)
+	_, err := auth.GetActiveUsername(c.Ctx)
 	if err == nil {
 		return c.WithError(
 			"can't open login page: user is already logged in",
@@ -45,7 +45,7 @@ func (r *Router) HandleLoginPost(c *Ctx) error {
 		).RedirectBack(IndexUrl)
 	}
 
-	err = session.Login(c.Ctx, user)
+	err = auth.Login(c.Ctx, user)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"failed to create new seesion, error: %s", err.Error()),
@@ -58,14 +58,14 @@ func (r *Router) HandleLoginPost(c *Ctx) error {
 }
 
 func (r *Router) HandleLogout(c *Ctx) error {
-	_, err := session.GetActiveUsername(c.Ctx)
+	_, err := auth.GetActiveUsername(c.Ctx)
 	if err != nil {
 		return c.WithError(
 			"can't logout: user is not logged in",
 		).RedirectBack(IndexUrl)
 	}
 
-	err = session.Logout(c.Ctx)
+	err = auth.Logout(c.Ctx)
 
 	if err != nil {
 		return c.WithError(fmt.Sprintf(

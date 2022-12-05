@@ -13,9 +13,18 @@ import (
 type RoleType string
 
 const (
-	RoleUser  RoleType = "user"
-	RoleAdmin          = "admin"
+	RoleUser      RoleType = "user"
+	RoleAdmin              = "admin"
+	RoleAnonymous          = "anonymous"
 )
+
+func AllRoles() []RoleType {
+	return []RoleType{
+		RoleUser,
+		RoleAdmin,
+		RoleAnonymous,
+	}
+}
 
 type KeywordProps struct {
 	ValidFrom      time.Time  `gorm:"autoCreateTime;not null" csv:"-" validate:"-"`

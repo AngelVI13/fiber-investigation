@@ -1,1 +1,53 @@
-<h2>{{.Title}}</h2>
+<div class="container py-4">
+    <div class="px-5 py-3 mb-4 bg-light rounded-3 border">
+        <div class="container-fluid py-5">
+            <h2 class="display-6 fw-bold">Common keywords storage</h2>
+            <p class="col-md-10" style="font-size: medium;">
+                This webpage is a storage for common keywords aligned across the projects.
+                <br>
+                This will help tester find the keywords easily.
+                <br>
+                More text about the tool...
+            </p>
+            <a href="/" target="_blank" class="btn btn-outline-primary ms-2" role="button">
+                Some link #1
+            </a>
+            <a href="/" target="_blank" class="btn btn-outline-primary ms-2"
+               role="button">
+                Some link #2
+            </a>
+        </div>
+    </div>
+
+
+    <div class="col-md-6">
+        <div class="px-3">
+            <a href="/business_keywords">
+                <i class="fs-4 bi-card-list"></i> <span>Business keywords</span>
+            </a>
+            <p>
+                Some description... <br>Count: {{.CountBusiness}}
+            </p>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="px-3">
+            <a href="/technical_keywords">
+                <i class="fs-4 bi-card-list"></i> <span>Technical keywords</span>
+            </a>
+            <p>
+                Some description... <br>Count: {{.CountTechnical}}
+            </p>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="px-3">
+            <a href="/all_keywords">
+                <i class="fs-4 bi-card-list"></i> <span>All keywords</span>
+            </a>
+            <p>
+                Some description... <br>Count: {{.CountAll}}
+            </p>
+        </div>
+    </div>
+</div>

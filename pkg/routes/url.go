@@ -3,31 +3,34 @@ package routes
 import "fmt"
 
 const (
-	IndexUrl         = "/"
-	BusinessKwdsUrl  = "/business_keywords"
-	TechnicalKwdsUrl = "/technical_keywords"
-	AllKwdsUrl       = "/all_keywords"
-	CreateKwdUrl     = "/create"
-	EditKwdUrl       = "/edit"
-	DeleteKwdUrl     = "/delete"
-	ChangelogUrl     = "/changelog"
-	ExportCsvUrl     = "/export/csv"
-	ExportStubsUrl   = "/export/stubs"
-	ImportCsvUrl     = "/import/csv"
-	RegisterUserUrl  = "/register_user"
-	LoginUrl         = "/login"
-	LogoutUrl        = "/logout"
-	AdminPanelUrl    = "/admin"
-	UserPanelUrl     = "/user"
-	DeleteUserUrl    = "/delete_user"
-	EditUserUrl      = "/edit_user"
-	AddUserUrl       = "/add_user"
+	IndexUrl           = "/"
+	BusinessKwdsUrl    = "/business_keywords"
+	TechnicalKwdsUrl   = "/technical_keywords"
+	AllKwdsUrl         = "/all_keywords"
+	CreateKwdUrl       = "/create"
+	EditKwdUrl         = "/edit"
+	DeleteKwdUrl       = "/delete"
+	ChangelogUrl       = "/changelog"
+	ExportCsvUrl       = "/export/csv"
+	ExportStubsUrl     = "/export/stubs"
+	ImportCsvUrl       = "/import/csv"
+	RegisterUserUrl    = "/register_user"
+	LoginUrl           = "/login"
+	LogoutUrl          = "/logout"
+	AdminPanelUrl      = "/admin"
+	UserPanelUrl       = "/user"
+	DeleteUserUrl      = "/delete_user"
+	EditUserUrl        = "/edit_user"
+	AddUserUrl         = "/add_user"
+	VersionKeywordsUrl = "/:kwType/version/:id"
 )
 
 var (
-	CreateKwdUrlFull = fmt.Sprintf("%s/:kw_type", CreateKwdUrl)
-	EditKwdUrlFull   = fmt.Sprintf("%s/:id/:kw_type", EditKwdUrl)
-	DeleteKwdUrlFull = fmt.Sprintf("%s/:id/:kw_type", DeleteKwdUrl)
+	CreateKwdUrlFull  = fmt.Sprintf("%s/:kw_type", CreateKwdUrl)
+	EditKwdUrlFull    = fmt.Sprintf("%s/:id/:kw_type", EditKwdUrl)
+	DeleteKwdUrlFull  = fmt.Sprintf("%s/:id/:kw_type", DeleteKwdUrl)
+	DeleteUserUrlFull = fmt.Sprintf("%s/:username", DeleteUserUrl)
+	EditUserUrlFull   = fmt.Sprintf("%s/:username", EditUserUrl)
 )
 
 var UrlMap = map[string]string{

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
-	"github.com/AngelVI13/fiber-investigation/pkg/session"
+	"github.com/AngelVI13/fiber-investigation/pkg/auth"
 	"github.com/google/uuid"
 	"github.com/gookit/validate"
 	"gorm.io/gorm"
@@ -64,7 +64,7 @@ func (r *Router) HandleRegisterPost(c *Ctx) error {
 		)).RedirectBack(IndexUrl)
 	}
 
-	err = session.Login(c.Ctx, user)
+	err = auth.Login(c.Ctx, user)
 	if err != nil {
 		return c.WithWarning(fmt.Sprintf(
 			"user registered successfully, but failed to login. error: %s", err),

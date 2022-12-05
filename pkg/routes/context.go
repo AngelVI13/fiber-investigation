@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/AngelVI13/fiber-investigation/pkg/session"
+	"github.com/AngelVI13/fiber-investigation/pkg/auth"
 	"github.com/gofiber/fiber/v2"
 	"github.com/sujit-baniya/flash"
 )
@@ -35,12 +35,12 @@ func (c *Ctx) WithUrls() *Ctx {
 func (c *Ctx) WithSession() *Ctx {
 	data := fiber.Map{}
 
-	username, err := session.GetActiveUsername(c.Ctx)
+	username, err := auth.GetActiveUsername(c.Ctx)
 	isConnected := err == nil
 
 	data["IsConnected"] = isConnected	
 	data["ActiveUser"] = username
-	data["IsAdmin"] = session.IsAdmin(c.Ctx)
+	data["IsAdmin"] = auth.IsAdmin(c.Ctx)
 
 	c.Bind(data)
 	return c
