@@ -43,16 +43,16 @@ func main() {
 	app.Get(routes.TechnicalKwdsUrl, routes.Handler(router.HandleTechnicalKeywords))
 	app.Get(routes.AllKwdsUrl, routes.Handler(router.HandleAllKeywords))
 
-	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleCreateKeywordGet))
-	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleCreateKeywordPost))
+	app.Get(routes.CreateKwdUrlFull, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleCreateKeywordGet))
+	app.Post(routes.CreateKwdUrlFull, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleCreateKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditKeywordGet))
-	app.Post(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditKeywordPost))
+	app.Get(routes.EditKwdUrlFull, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleEditKeywordGet))
+	app.Post(routes.EditKwdUrlFull, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleEditKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.DeleteKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleDeleteKeyword))
+	app.Get(routes.DeleteKwdUrlFull, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleDeleteKeyword))
 
-	app.Get(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleImportCsvGet))
-	app.Post(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleImportCsvPost))
+	app.Get(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleImportCsvGet))
+	app.Post(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleImportCsvPost))
 
 	app.Get(routes.ExportCsvUrl, routes.Handler(router.HandleExportCsvGet))
 	app.Post(routes.ExportCsvUrl, routes.Handler(router.HandleExportCsvPost))
@@ -64,28 +64,28 @@ func main() {
 
 	app.Get("/:kwType/version/:id", routes.Handler(router.HandleKeywordVersion))
 
-	app.Get(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleRegisterGet))
-	app.Post(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleRegisterPost))
+	app.Get(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), routes.Handler(router.HandleRegisterGet))
+	app.Post(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), routes.Handler(router.HandleRegisterPost))
 
-	app.Get(routes.LoginUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleLoginGet))
-	app.Post(routes.LoginUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleLoginPost))
+	app.Get(routes.LoginUrl, auth.RolesRequires(database.RoleAnonimous), routes.Handler(router.HandleLoginGet))
+	app.Post(routes.LoginUrl, auth.RolesRequires(database.RoleAnonimous), routes.Handler(router.HandleLoginPost))
 
-	app.Get(routes.LogoutUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), Handler(router.HandleLogout))
+	app.Get(routes.LogoutUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), routes.Handler(router.HandleLogout))
 
-	app.Get(routes.AdminPanelUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleAdmin))
+	app.Get(routes.AdminPanelUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleAdmin))
 
-	app.Get(routes.UserPanelUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), Handler(router.HandleUserPanelGet))
-	app.Post(routes.UserPanelUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), Handler(router.HandleUserPanelPost))
+	app.Get(routes.UserPanelUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), routes.Handler(router.HandleUserPanelGet))
+	app.Post(routes.UserPanelUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), routes.Handler(router.HandleUserPanelPost))
 
 	deleteUserUrl := fmt.Sprintf("%s/:username", routes.DeleteUserUrl)
 	editUserUrl := fmt.Sprintf("%s/:username", routes.EditUserUrl)
 
-	app.Get(deleteUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleDeleteUser))
-	app.Get(editUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditUserGet))
-	app.Post(editUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditUserPost))
+	app.Get(deleteUserUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleDeleteUser))
+	app.Get(editUserUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleEditUserGet))
+	app.Post(editUserUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleEditUserPost))
 
-	app.Get(routes.AddUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleAddUserGet))
-	app.Post(routes.AddUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleAddUserPost))
+	app.Get(routes.AddUserUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleAddUserGet))
+	app.Post(routes.AddUserUrl, auth.RolesRequires(database.RoleAdmin), routes.Handler(router.HandleAddUserPost))
 
 	log.Fatal(app.Listen(":3000"))
 }
