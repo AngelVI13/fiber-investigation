@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/AngelVI13/fiber-investigation/pkg/auth"
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
 	"github.com/AngelVI13/fiber-investigation/pkg/routes"
-	"github.com/AngelVI13/fiber-investigation/pkg/session"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 )
@@ -34,7 +34,7 @@ func main() {
 		log.Fatalf("Couldn't open database: %s - %v", db_path, err)
 	}
 
-	session.CreateSession()
+	auth.CreateSession()
 
 	engine := html.NewFileSystem(http.FS(viewsfs), ".html")
 
@@ -54,16 +54,16 @@ func main() {
 	app.Get(routes.TechnicalKwdsUrl, Handler(router.HandleTechnicalKeywords))
 	app.Get(routes.AllKwdsUrl, Handler(router.HandleAllKeywords))
 
-	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordGet))
-	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordPost))
+	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleCreateKeywordGet))
+	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleCreateKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), Handler(router.HandleEditKeywordGet))
-	app.Post(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), Handler(router.HandleEditKeywordPost))
+	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditKeywordGet))
+	app.Post(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.DeleteKwdUrl), Handler(router.HandleDeleteKeyword))
+	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.DeleteKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleDeleteKeyword))
 
-	app.Get(routes.ImportCsvUrl, Handler(router.HandleImportCsvGet))
-	app.Post(routes.ImportCsvUrl, Handler(router.HandleImportCsvPost))
+	app.Get(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleImportCsvGet))
+	app.Post(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleImportCsvPost))
 
 	app.Get(routes.ExportCsvUrl, Handler(router.HandleExportCsvGet))
 	app.Post(routes.ExportCsvUrl, Handler(router.HandleExportCsvPost))
@@ -75,28 +75,28 @@ func main() {
 
 	app.Get("/:kwType/version/:id", Handler(router.HandleKeywordVersion))
 
-	app.Get(routes.RegisterUserUrl, Handler(router.HandleRegisterGet))
-	app.Post(routes.RegisterUserUrl, Handler(router.HandleRegisterPost))
+	app.Get(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleRegisterGet))
+	app.Post(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleRegisterPost))
 
-	app.Get(routes.LoginUrl, Handler(router.HandleLoginGet))
-	app.Post(routes.LoginUrl, Handler(router.HandleLoginPost))
+	app.Get(routes.LoginUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleLoginGet))
+	app.Post(routes.LoginUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleLoginPost))
 
-	app.Get(routes.LogoutUrl, Handler(router.HandleLogout))
+	app.Get(routes.LogoutUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), Handler(router.HandleLogout))
 
-	app.Get(routes.AdminPanelUrl, Handler(router.HandleAdmin))
+	app.Get(routes.AdminPanelUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleAdmin))
 
-	app.Get(routes.UserPanelUrl, Handler(router.HandleUserPanelGet))
-	app.Post(routes.UserPanelUrl, Handler(router.HandleUserPanelPost))
+	app.Get(routes.UserPanelUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), Handler(router.HandleUserPanelGet))
+	app.Post(routes.UserPanelUrl, auth.RolesRequires(database.RoleUser, database.RoleAdmin), Handler(router.HandleUserPanelPost))
 
 	deleteUserUrl := fmt.Sprintf("%s/:username", routes.DeleteUserUrl)
 	editUserUrl := fmt.Sprintf("%s/:username", routes.EditUserUrl)
-	
-	app.Get(deleteUserUrl, Handler(router.HandleDeleteUser))
-	app.Get(editUserUrl, Handler(router.HandleEditUserGet))
-	app.Post(editUserUrl, Handler(router.HandleEditUserPost))
 
-	app.Get(routes.AddUserUrl, Handler(router.HandleAddUserGet))
-	app.Post(routes.AddUserUrl, Handler(router.HandleAddUserPost))
+	app.Get(deleteUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleDeleteUser))
+	app.Get(editUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditUserGet))
+	app.Post(editUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleEditUserPost))
+
+	app.Get(routes.AddUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleAddUserGet))
+	app.Post(routes.AddUserUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleAddUserPost))
 
 	log.Fatal(app.Listen(":3000"))
 }

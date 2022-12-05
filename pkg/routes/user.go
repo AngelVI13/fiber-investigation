@@ -3,12 +3,12 @@ package routes
 import (
 	"fmt"
 
+	"github.com/AngelVI13/fiber-investigation/pkg/auth"
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
-	"github.com/AngelVI13/fiber-investigation/pkg/session"
 )
 
 func (r *Router) HandleUserPanelGet(c *Ctx) error {
-	username, err := session.GetActiveUsername(c.Ctx)
+	username, err := auth.GetActiveUsername(c.Ctx)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"failed to get current user, error: %s", err),
@@ -32,7 +32,7 @@ func (r *Router) HandleUserPanelGet(c *Ctx) error {
 }
 
 func (r *Router) HandleUserPanelPost(c *Ctx) error {
-	username, err := session.GetActiveUsername(c.Ctx)
+	username, err := auth.GetActiveUsername(c.Ctx)
 	if err != nil {
 		return c.WithError(fmt.Sprintf(
 			"failed to get current user, error: %s", err),

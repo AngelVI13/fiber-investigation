@@ -13,8 +13,9 @@ import (
 type RoleType string
 
 const (
-	RoleUser  RoleType = "user"
-	RoleAdmin          = "admin"
+	RoleUser      RoleType  = "user"
+	RoleAdmin               = "admin"
+	RoleAnonimous           = "anonimous"
 )
 
 type KeywordProps struct {
