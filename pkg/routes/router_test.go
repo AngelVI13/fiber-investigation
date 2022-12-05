@@ -131,7 +131,7 @@ func VerifyExportCsvGet(app *fiber.App, t *testing.T) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("unexpected status code %d", resp.StatusCode)
+		t.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 }
 
@@ -178,7 +178,7 @@ func VerifyCreateKeywordPost(app *fiber.App, t *testing.T) {
 	url := fmt.Sprintf("%s/%s", CreateKwdUrl, database.Technical)
 	resp, err := MakePostRequest(app, url, data)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if resp.StatusCode != http.StatusFound {
@@ -209,9 +209,6 @@ func VerifyCreateKeywordPost(app *fiber.App, t *testing.T) {
 	}
 
 	if foundIdx == -1 {
-		lstKw := keywords[len(keywords)-1]
-		t.Log(lstKw)
-		t.Log(lstKw.Name, lstKw.Args, lstKw.Docs)
 		t.Errorf("did not find newly created keyword: %v", keywords)
 	}
 }
@@ -243,7 +240,7 @@ func VerifyCreateKeywordMissingNamePost(app *fiber.App, t *testing.T) {
 	url := fmt.Sprintf("%s/%s", CreateKwdUrl, database.Technical)
 	resp, err := MakePostRequest(app, url, data)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if resp.StatusCode != http.StatusFound {
