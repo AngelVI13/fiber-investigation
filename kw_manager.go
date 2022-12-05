@@ -16,17 +16,6 @@ import (
 //go:embed views/*
 var viewsfs embed.FS
 
-// Handler Wrapper to convert handler args to expected args by fiber and
-// add url map to context.
-func Handler(f func(c *routes.Ctx) error) func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		ctx := &routes.Ctx{
-			Ctx: c,
-		}
-		return f(ctx.WithUrls().WithSession())
-	}
-}
-
 func main() {
 	db_path := "test.db"
 	db, err := database.Create(db_path)
@@ -48,11 +37,11 @@ func main() {
 
 	router := routes.NewRouter(db)
 
-	app.Get(routes.IndexUrl, Handler(router.HandleIndex))
+	app.Get(routes.IndexUrl, routes.Handler(router.HandleIndex))
 
-	app.Get(routes.BusinessKwdsUrl, Handler(router.HandleBusinessKeywords))
-	app.Get(routes.TechnicalKwdsUrl, Handler(router.HandleTechnicalKeywords))
-	app.Get(routes.AllKwdsUrl, Handler(router.HandleAllKeywords))
+	app.Get(routes.BusinessKwdsUrl, routes.Handler(router.HandleBusinessKeywords))
+	app.Get(routes.TechnicalKwdsUrl, routes.Handler(router.HandleTechnicalKeywords))
+	app.Get(routes.AllKwdsUrl, routes.Handler(router.HandleAllKeywords))
 
 	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleCreateKeywordGet))
 	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), auth.RolesRequires(database.RoleAdmin), Handler(router.HandleCreateKeywordPost))
@@ -65,15 +54,15 @@ func main() {
 	app.Get(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleImportCsvGet))
 	app.Post(routes.ImportCsvUrl, auth.RolesRequires(database.RoleAdmin), Handler(router.HandleImportCsvPost))
 
-	app.Get(routes.ExportCsvUrl, Handler(router.HandleExportCsvGet))
-	app.Post(routes.ExportCsvUrl, Handler(router.HandleExportCsvPost))
+	app.Get(routes.ExportCsvUrl, routes.Handler(router.HandleExportCsvGet))
+	app.Post(routes.ExportCsvUrl, routes.Handler(router.HandleExportCsvPost))
 
-	app.Get(routes.ExportStubsUrl, Handler(router.HandleExportStubsGet))
-	app.Post(routes.ExportStubsUrl, Handler(router.HandleExportStubsPost))
+	app.Get(routes.ExportStubsUrl, routes.Handler(router.HandleExportStubsGet))
+	app.Post(routes.ExportStubsUrl, routes.Handler(router.HandleExportStubsPost))
 
-	app.Get(routes.ChangelogUrl, Handler(router.HandleChangelog))
+	app.Get(routes.ChangelogUrl, routes.Handler(router.HandleChangelog))
 
-	app.Get("/:kwType/version/:id", Handler(router.HandleKeywordVersion))
+	app.Get("/:kwType/version/:id", routes.Handler(router.HandleKeywordVersion))
 
 	app.Get(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleRegisterGet))
 	app.Post(routes.RegisterUserUrl, auth.RolesRequires(database.RoleAnonimous), Handler(router.HandleRegisterPost))
