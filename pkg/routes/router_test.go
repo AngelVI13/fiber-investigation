@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/AngelVI13/fiber-investigation/pkg/database"
-	"github.com/AngelVI13/fiber-investigation/pkg/session"
+	"github.com/AngelVI13/fiber-investigation/pkg/auth"
 	"github.com/AngelVI13/fiber-investigation/pkg/testutil"
 	"github.com/gofiber/fiber/v2"
 )
@@ -103,7 +103,7 @@ func MakePostRequest(
 
 func TestRouter(t *testing.T) {
 	app := testutil.NewTestFiberApp(t)
-	session.CreateSession()
+	auth.CreateSession()
 
 	// closure to provide app and router to testing func
 	withArgs := func(h testHandler) func(t *testing.T) {
