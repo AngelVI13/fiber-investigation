@@ -20,10 +20,10 @@ const (
 type KeywordProps struct {
 	ValidFrom      time.Time  `gorm:"autoCreateTime;not null" csv:"-" validate:"-"`
 	ValidTo        *time.Time `csv:"-" validate:"-"`
-	Name           string     `gorm:"not null" csv:"Name" validate:"nameValidator"`
+	Name           string     `gorm:"not null" csv:"Name" validate:"required|nameValidator"`
 	Args           string     `gorm:"not null" csv:"Args" validate:"argsValidator"`
-	Docs           string     `gorm:"not null" csv:"Docs" validate:"docsValidator"`
-	KwType         string     `gorm:"not null" csv:"Type" validate:"kwTypeValidator"`
+	Docs           string     `gorm:"not null" csv:"Docs" validate:"required|docsValidator"`
+	KwType         string     `gorm:"not null" csv:"Type" validate:"required|kwTypeValidator"`
 	Implementation string     `csv:"Implementation" validate:"-"`
 }
 

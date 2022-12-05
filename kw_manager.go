@@ -16,17 +16,6 @@ import (
 //go:embed views/*
 var viewsfs embed.FS
 
-// Handler Wrapper to convert handler args to expected args by fiber and
-// add url map to context.
-func Handler(f func(c *routes.Ctx) error) func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		ctx := &routes.Ctx{
-			Ctx: c,
-		}
-		return f(ctx.WithUrls().WithSession())
-	}
-}
-
 func main() {
 	db_path := "test.db"
 	db, err := database.Create(db_path)
@@ -48,55 +37,55 @@ func main() {
 
 	router := routes.NewRouter(db)
 
-	app.Get(routes.IndexUrl, Handler(router.HandleIndex))
+	app.Get(routes.IndexUrl, routes.Handler(router.HandleIndex))
 
-	app.Get(routes.BusinessKwdsUrl, Handler(router.HandleBusinessKeywords))
-	app.Get(routes.TechnicalKwdsUrl, Handler(router.HandleTechnicalKeywords))
-	app.Get(routes.AllKwdsUrl, Handler(router.HandleAllKeywords))
+	app.Get(routes.BusinessKwdsUrl, routes.Handler(router.HandleBusinessKeywords))
+	app.Get(routes.TechnicalKwdsUrl, routes.Handler(router.HandleTechnicalKeywords))
+	app.Get(routes.AllKwdsUrl, routes.Handler(router.HandleAllKeywords))
 
-	app.Get(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordGet))
-	app.Post(fmt.Sprintf("%s/:kw_type", routes.CreateKwdUrl), Handler(router.HandleCreateKeywordPost))
+	app.Get(routes.CreateKwdUrlFull, routes.Handler(router.HandleCreateKeywordGet))
+	app.Post(routes.CreateKwdUrlFull, routes.Handler(router.HandleCreateKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), Handler(router.HandleEditKeywordGet))
-	app.Post(fmt.Sprintf("%s/:id/:kw_type", routes.EditKwdUrl), Handler(router.HandleEditKeywordPost))
+	app.Get(routes.EditKwdUrlFull, routes.Handler(router.HandleEditKeywordGet))
+	app.Post(routes.EditKwdUrlFull, routes.Handler(router.HandleEditKeywordPost))
 
-	app.Get(fmt.Sprintf("%s/:id/:kw_type", routes.DeleteKwdUrl), Handler(router.HandleDeleteKeyword))
+	app.Get(routes.DeleteKwdUrlFull, routes.Handler(router.HandleDeleteKeyword))
 
-	app.Get(routes.ImportCsvUrl, Handler(router.HandleImportCsvGet))
-	app.Post(routes.ImportCsvUrl, Handler(router.HandleImportCsvPost))
+	app.Get(routes.ImportCsvUrl, routes.Handler(router.HandleImportCsvGet))
+	app.Post(routes.ImportCsvUrl, routes.Handler(router.HandleImportCsvPost))
 
-	app.Get(routes.ExportCsvUrl, Handler(router.HandleExportCsvGet))
-	app.Post(routes.ExportCsvUrl, Handler(router.HandleExportCsvPost))
+	app.Get(routes.ExportCsvUrl, routes.Handler(router.HandleExportCsvGet))
+	app.Post(routes.ExportCsvUrl, routes.Handler(router.HandleExportCsvPost))
 
-	app.Get(routes.ExportStubsUrl, Handler(router.HandleExportStubsGet))
-	app.Post(routes.ExportStubsUrl, Handler(router.HandleExportStubsPost))
+	app.Get(routes.ExportStubsUrl, routes.Handler(router.HandleExportStubsGet))
+	app.Post(routes.ExportStubsUrl, routes.Handler(router.HandleExportStubsPost))
 
-	app.Get(routes.ChangelogUrl, Handler(router.HandleChangelog))
+	app.Get(routes.ChangelogUrl, routes.Handler(router.HandleChangelog))
 
-	app.Get("/:kwType/version/:id", Handler(router.HandleKeywordVersion))
+	app.Get("/:kwType/version/:id", routes.Handler(router.HandleKeywordVersion))
 
-	app.Get(routes.RegisterUserUrl, Handler(router.HandleRegisterGet))
-	app.Post(routes.RegisterUserUrl, Handler(router.HandleRegisterPost))
+	app.Get(routes.RegisterUserUrl, routes.Handler(router.HandleRegisterGet))
+	app.Post(routes.RegisterUserUrl, routes.Handler(router.HandleRegisterPost))
 
-	app.Get(routes.LoginUrl, Handler(router.HandleLoginGet))
-	app.Post(routes.LoginUrl, Handler(router.HandleLoginPost))
+	app.Get(routes.LoginUrl, routes.Handler(router.HandleLoginGet))
+	app.Post(routes.LoginUrl, routes.Handler(router.HandleLoginPost))
 
-	app.Get(routes.LogoutUrl, Handler(router.HandleLogout))
+	app.Get(routes.LogoutUrl, routes.Handler(router.HandleLogout))
 
-	app.Get(routes.AdminPanelUrl, Handler(router.HandleAdmin))
+	app.Get(routes.AdminPanelUrl, routes.Handler(router.HandleAdmin))
 
-	app.Get(routes.UserPanelUrl, Handler(router.HandleUserPanelGet))
-	app.Post(routes.UserPanelUrl, Handler(router.HandleUserPanelPost))
+	app.Get(routes.UserPanelUrl, routes.Handler(router.HandleUserPanelGet))
+	app.Post(routes.UserPanelUrl, routes.Handler(router.HandleUserPanelPost))
 
 	deleteUserUrl := fmt.Sprintf("%s/:username", routes.DeleteUserUrl)
 	editUserUrl := fmt.Sprintf("%s/:username", routes.EditUserUrl)
-	
-	app.Get(deleteUserUrl, Handler(router.HandleDeleteUser))
-	app.Get(editUserUrl, Handler(router.HandleEditUserGet))
-	app.Post(editUserUrl, Handler(router.HandleEditUserPost))
 
-	app.Get(routes.AddUserUrl, Handler(router.HandleAddUserGet))
-	app.Post(routes.AddUserUrl, Handler(router.HandleAddUserPost))
+	app.Get(deleteUserUrl, routes.Handler(router.HandleDeleteUser))
+	app.Get(editUserUrl, routes.Handler(router.HandleEditUserGet))
+	app.Post(editUserUrl, routes.Handler(router.HandleEditUserPost))
+
+	app.Get(routes.AddUserUrl, routes.Handler(router.HandleAddUserGet))
+	app.Post(routes.AddUserUrl, routes.Handler(router.HandleAddUserPost))
 
 	log.Fatal(app.Listen(":3000"))
 }
