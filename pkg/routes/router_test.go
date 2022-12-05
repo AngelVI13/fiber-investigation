@@ -130,7 +130,7 @@ func VerifyExportCsvGet(app *fiber.App, t *testing.T) {
 		t.Fatalf("app test request error: %v", err)
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("unexpected status code %d", resp.StatusCode)
 	}
 }
@@ -145,7 +145,7 @@ func VerifyExportStubsGet(app *fiber.App, t *testing.T) {
 		t.Fatalf("app test request error: %v", err)
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 }
@@ -181,7 +181,7 @@ func VerifyCreateKeywordPost(app *fiber.App, t *testing.T) {
 		t.Error(err)
 	}
 
-	if resp.StatusCode != 302 {
+	if resp.StatusCode != http.StatusFound {
 		t.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 
@@ -246,7 +246,7 @@ func VerifyCreateKeywordMissingNamePost(app *fiber.App, t *testing.T) {
 		t.Error(err)
 	}
 
-	if resp.StatusCode != 302 {
+	if resp.StatusCode != http.StatusFound {
 		t.Errorf("unexpected status code %d", resp.StatusCode)
 	}
 
